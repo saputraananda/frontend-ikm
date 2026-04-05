@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.eabsensiikm",
+  "appName": "IKM Mobile",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

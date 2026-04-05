@@ -1,0 +1,41 @@
+# Dependency directories
+node_modules/
+lib/
+
+# Build output
+dist/
+build/
+dist-ssr/
+
+# Environment files
+.env
+*.local
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Test coverage
+coverage/
+
+# Capacitor/Cordova/Native
+android/
+ios/
+
+# Others
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
