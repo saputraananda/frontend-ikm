@@ -1,6 +1,5 @@
 # Dependency directories
 node_modules/
-lib/
 
 # Build output
 dist/
