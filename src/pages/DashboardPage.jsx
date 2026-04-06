@@ -130,6 +130,7 @@ export default function DashboardPage() {
   // GPS state
   const [gpsState, setGpsState] = useState('idle'); // idle | loading | ok | out | denied
   const [gpsDist, setGpsDist] = useState(null);
+  const [nearestOffice, setNearestOffice] = useState(null); // 1 | 2
   const [, setGpsCoord] = useState(null);
   const [gpsRefreshKey, setGpsRefreshKey] = useState(0);
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
@@ -176,6 +177,7 @@ export default function DashboardPage() {
       const dist = Math.min(dist1, dist2);
       setGpsCoord({ lat, lng });
       setGpsDist(dist);
+      setNearestOffice(dist1 <= dist2 ? 1 : 2);
       setGpsState(dist <= MAX_DIST_M ? 'ok' : 'out');
       setGpsRefreshing(false);
     };
@@ -354,7 +356,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="text-[12.5px] font-bold" style={{ color: gps.color }}>{gps.text}</div>
-              <div className="text-[10.5px] font-medium text-slate-400 mt-px">Laundry IKM Pringgondani · maks {MAX_DIST_M}m</div>
+              <div className="text-[10.5px] font-medium text-slate-400 mt-px">{nearestOffice === 1 ? 'Head Office Alora' : 'Laundry IKM Pringgondani'} · maks {MAX_DIST_M}m</div>
             </div>
             <button
               className="w-8 h-8 rounded-[10px] border-[1.5px] bg-white/70 grid place-items-center cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed"
