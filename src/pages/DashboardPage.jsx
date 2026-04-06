@@ -6,6 +6,8 @@ import useAuthStore from '../store/authStore';
 /* ── Office location ─────────────────────────────────────────────── */
 const OFFICE_LAT = -6.3983239;
 const OFFICE_LNG = 106.8997063;
+const OFFICE_LAT_2 = -6.3848079;
+const OFFICE_LNG_2 = 106.8997077;
 const MAX_DIST_M = 200;
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
@@ -169,7 +171,9 @@ export default function DashboardPage() {
     const onSuccess = (pos) => {
       const lat  = pos.coords.latitude;
       const lng  = pos.coords.longitude;
-      const dist = haversineMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
+      const dist1 = haversineMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
+      const dist2 = haversineMeters(lat, lng, OFFICE_LAT_2, OFFICE_LNG_2);
+      const dist = Math.min(dist1, dist2);
       setGpsCoord({ lat, lng });
       setGpsDist(dist);
       setGpsState(dist <= MAX_DIST_M ? 'ok' : 'out');
@@ -235,7 +239,9 @@ export default function DashboardPage() {
       return;
     }
 
-    const dist = haversineMeters(coord.lat, coord.lng, OFFICE_LAT, OFFICE_LNG);
+    const dist1 = haversineMeters(coord.lat, coord.lng, OFFICE_LAT, OFFICE_LNG);
+    const dist2 = haversineMeters(coord.lat, coord.lng, OFFICE_LAT_2, OFFICE_LNG_2);
+    const dist = Math.min(dist1, dist2);
     if (dist > MAX_DIST_M) {
       setMsgs(prev => ({
         ...prev,
