@@ -26,6 +26,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showLogout, setShowLogout] = useState(false);
 
+  useEffect(() => { document.title = 'Profil | IKM Mobile'; }, []);
+
   useEffect(() => {
     api.get('/auth/profile')
       .then(r => setProfile(r.data.data))

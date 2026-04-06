@@ -136,6 +136,8 @@ export default function DashboardPage() {
   const role = profile?.position || profile?.department || 'Karyawan';
   const empId = profile?.employee_code || profile?.employee_id || '';
 
+  useEffect(() => { document.title = 'Absensi | IKM Mobile'; }, []);
+
   /* ── Clock tick ── */
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);

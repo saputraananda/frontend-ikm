@@ -120,6 +120,8 @@ export default function HistoryPage() {
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [selected, setSelected]   = useState(null);
 
+  useEffect(() => { document.title = 'Riwayat | IKM Mobile'; }, []);
+
   useEffect(() => {
     api.get('/attendance/history')
       .then(r => setHistories(r.data.data || []))

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 
@@ -203,6 +203,15 @@ export default function Layout({ children, title = 'Attendance' }) {
   const clearAuth  = useAuthStore(s => s.clearAuth);
   const authUser   = useAuthStore(s => s.user);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = `${title} | E-Absensi IKM`;
+    const link = document.querySelector("link[rel='icon']") || document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = '/favicon.svg';
+    document.head.appendChild(link);
+  }, [title]);
 
   const handleLogout = () => { clearAuth(); navigate('/login'); };
   const isActive = (p) => location.pathname === p;

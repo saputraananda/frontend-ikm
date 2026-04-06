@@ -120,6 +120,8 @@ export default function HomePage() {
     const role = profile?.position || profile?.department || 'Karyawan';
     const empId = profile?.employee_code || profile?.employee_id || '';
 
+    useEffect(() => { document.title = 'Beranda | IKM Mobile'; }, []);
+
     useEffect(() => {
         api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
         api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => { });

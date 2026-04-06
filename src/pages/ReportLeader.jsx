@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GLOBAL_STYLES } from '../components/Layout';
 
@@ -240,6 +240,8 @@ export default function ReportLeader() {
         persetujuan: false,
     });
     const [submitted, setSubmitted] = useState(false);
+
+    useEffect(() => { document.title = 'Laporan | IKM Mobile'; }, []);
 
     const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
