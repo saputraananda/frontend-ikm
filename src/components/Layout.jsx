@@ -30,168 +30,6 @@ const IconLogout = () => (
   </svg>
 );
 
-export const GLOBAL_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --navy-950: #060D1F;
-    --navy-900: #0B1739;
-    --navy-800: #112154;
-    --navy-700: #1A336E;
-    --navy-600: #1E3A8A;
-    --navy-500: #1D4ED8;
-    --navy-400: #3B82F6;
-    --navy-300: #93C5FD;
-    --navy-100: #DBEAFE;
-    --navy-50:  #EFF6FF;
-
-    --n-900: #0F172A;
-    --n-800: #1E293B;
-    --n-700: #334155;
-    --n-500: #64748B;
-    --n-400: #94A3B8;
-    --n-200: #E2E8F0;
-    --n-100: #F1F5F9;
-    --n-50:  #F8FAFC;
-    --white: #FFFFFF;
-
-    --success:        #059669;
-    --success-bg:     #ECFDF5;
-    --success-border: #A7F3D0;
-    --warning:        #D97706;
-    --warning-bg:     #FFFBEB;
-    --warning-border: #FDE68A;
-    --danger:         #DC2626;
-    --danger-bg:      #FEF2F2;
-    --danger-border:  #FECACA;
-
-    --font:      'Plus Jakarta Sans', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-
-    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px;
-    --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(15,23,42,.06);
-  }
-
-  body { font-family: var(--font); background: var(--n-100); color: var(--n-900); -webkit-font-smoothing: antialiased; }
-
-  .shell { min-height: 100dvh; background: var(--n-100); }
-  .frame {
-    margin: 0 auto; max-width: 430px; min-height: 100dvh;
-    background: var(--white); display: flex; flex-direction: column;
-    box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 48px rgba(0,0,0,.07);
-  }
-
-  /* Header */
-  .app-header {
-    position: sticky; top: 0; z-index: 20;
-    background: var(--navy-900);
-    padding: 0 16px; height: 56px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-  }
-  .header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-  .menu-btn {
-    width: 34px; height: 34px; border-radius: var(--r-sm);
-    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.07);
-    color: rgba(255,255,255,.7); display: grid; place-items: center;
-    cursor: pointer; flex-shrink: 0; transition: background .15s, color .15s;
-  }
-  .menu-btn:hover { background: rgba(255,255,255,.15); color: var(--white); }
-  .header-brand { font-size: 9.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--navy-300); opacity: .65; }
-  .header-title { font-size: 14px; font-weight: 700; color: var(--white); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .header-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--navy-700); border: 1.5px solid rgba(255,255,255,.15);
-    color: var(--navy-100); font-size: 11px; font-weight: 700;
-    display: grid; place-items: center; flex-shrink: 0;
-  }
-
-  /* Drawer */
-  .drawer-overlay {
-    position: fixed; inset: 0; z-index: 40;
-    background: rgba(6,13,31,.6); backdrop-filter: blur(3px);
-    animation: fadeIn .2s ease;
-  }
-  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  @keyframes slideIn { from{transform:translateX(-100%)} to{transform:translateX(0)} }
-
-  .drawer {
-    position: fixed; top: 0; left: 0; z-index: 50;
-    width: 268px; height: 100dvh; background: var(--white);
-    display: flex; flex-direction: column;
-    animation: slideIn .24s cubic-bezier(.22,.68,0,1.1);
-    border-right: 1px solid var(--n-200);
-  }
-  .drawer-head {
-    background: var(--navy-900); padding: 20px 16px 18px;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  }
-  .drawer-avatar {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: var(--navy-700); border: 1.5px solid rgba(255,255,255,.15);
-    color: var(--navy-100); font-size: 13px; font-weight: 700;
-    display: grid; place-items: center; flex-shrink: 0;
-  }
-  .drawer-name { font-size: 13px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 148px; }
-  .drawer-email { font-size: 11px; color: rgba(255,255,255,.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 148px; margin-top: 2px; }
-  .drawer-close {
-    width: 28px; height: 28px; border-radius: var(--r-sm);
-    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06);
-    color: rgba(255,255,255,.5); display: grid; place-items: center;
-    cursor: pointer; flex-shrink: 0; transition: background .14s;
-  }
-  .drawer-close:hover { background: rgba(255,255,255,.14); color: var(--white); }
-
-  .drawer-nav { padding: 10px; flex: 1; overflow-y: auto; }
-  .drawer-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--n-400); padding: 4px 8px 8px; }
-  .nav-link {
-    display: flex; align-items: center; gap: 9px; padding: 9px 10px;
-    border-radius: var(--r-md); font-size: 13px; font-weight: 500;
-    color: var(--n-700); text-decoration: none;
-    transition: background .14s, color .14s; margin-bottom: 2px;
-  }
-  .nav-link:hover { background: var(--n-100); color: var(--n-900); }
-  .nav-link.active { background: var(--navy-50); color: var(--navy-600); font-weight: 600; }
-  .nav-icon { flex-shrink: 0; color: var(--n-400); }
-  .nav-link.active .nav-icon { color: var(--navy-500); }
-
-  .drawer-footer { padding: 10px; border-top: 1px solid var(--n-200); }
-  .logout-btn {
-    width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 9px 12px; border-radius: var(--r-md);
-    border: 1px solid var(--danger-border); background: var(--danger-bg);
-    color: var(--danger); font-size: 12.5px; font-weight: 500;
-    font-family: var(--font); cursor: pointer; transition: background .14s;
-  }
-  .logout-btn:hover { background: #FECACA; }
-
-  /* Main */
-  .app-main { flex: 1; padding: 14px 13px 108px; display: flex; flex-direction: column; gap: 10px; }
-
-  /* Bottom Nav */
-  .bnav-wrap { position: fixed; inset-x: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; pointer-events: none; }
-  .bnav {
-    pointer-events: auto; width: 100%; max-width: 430px;
-    background: rgba(255,255,255,.97); backdrop-filter: blur(14px);
-    border-top: 1px solid var(--n-200);
-    padding: 10px 13px calc(env(safe-area-inset-bottom) + 10px);
-    box-shadow: 0 -1px 0 rgba(0,0,0,.04), 0 -8px 24px rgba(0,0,0,.05);
-  }
-  .bnav-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .bnav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 9px; border-radius: var(--r-md);
-    text-decoration: none; font-size: 10.5px; font-weight: 500;
-    color: var(--n-400); transition: background .14s, color .14s;
-  }
-  .bnav-item:hover { background: var(--n-100); color: var(--n-900); }
-  .bnav-item.active { background: var(--navy-900); color: var(--white); }
-  .bnav-item.active svg { stroke: var(--white); opacity: 1; }
-  .bnav-item svg { opacity: .55; }
-`;
-
 const initials = (name) => {
   if (!name) return '–';
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
@@ -218,78 +56,103 @@ export default function Layout({ children, title = 'Attendance' }) {
   const close = () => setOpen(false);
 
   return (
-    <>
-      <style>{GLOBAL_STYLES}</style>
-      <div className="shell">
-        <div className="frame">
+    <div className="min-h-[100dvh] bg-slate-100">
+      <div className="mx-auto max-w-[430px] min-h-[100dvh] bg-white flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.05),0_8px_48px_rgba(0,0,0,.07)]">
 
-          <header className="app-header">
-            <div className="header-left">
-              <button className="menu-btn" onClick={() => setOpen(true)} aria-label="Menu">
-                <IconMenu />
-              </button>
-              <div style={{ minWidth: 0 }}>
-                <div className="header-brand">Sistem Absensi</div>
-                <div className="header-title">{title}</div>
-              </div>
-            </div>
-            <div className="header-avatar">{initials(authUser?.full_name || authUser?.name)}</div>
-          </header>
-
-          {open && <div className="drawer-overlay" onClick={close} />}
-
-          {open && (
-            <aside className="drawer">
-              <div className="drawer-head">
-                <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
-                  <div className="drawer-avatar">{initials(authUser?.full_name || authUser?.name)}</div>
-                  <div style={{ minWidth:0 }}>
-                    <div className="drawer-name">{authUser?.full_name || authUser?.name || 'User'}</div>
-                    <div className="drawer-email">{authUser?.email || '–'}</div>
-                  </div>
-                </div>
-                <button className="drawer-close" onClick={close} aria-label="Tutup"><IconClose /></button>
-              </div>
-              <nav className="drawer-nav">
-                <div className="drawer-label">Menu Utama</div>
-                <Link to="/" onClick={close} className={`nav-link${isActive('/') ? ' active' : ''}`}>
-                  <span className="nav-icon"><IconHome /></span> Beranda
-                </Link>
-                <Link to="/attendance" onClick={close} className={`nav-link${isActive('/attendance') ? ' active' : ''}`}>
-                  <span className="nav-icon"><IconHistory /></span> Absensi
-                </Link>
-                <Link to="/history" onClick={close} className={`nav-link${isActive('/history') ? ' active' : ''}`}>
-                  <span className="nav-icon"><IconHistory /></span> Riwayat Absensi
-                </Link>
-              </nav>
-              <div className="drawer-footer">
-                <button className="logout-btn" onClick={() => { handleLogout(); close(); }}>
-                  <IconLogout /> Keluar dari Akun
-                </button>
-              </div>
-            </aside>
-          )}
-
-          <main className="app-main">{children}</main>
-
-          <div className="bnav-wrap">
-            <div className="bnav">
-              <nav className="bnav-grid">
-                <Link to="/" className={`bnav-item${isActive('/') ? ' active' : ''}`}>
-                  <IconHome /> Beranda
-                </Link>
-                <Link to="/history" className={`bnav-item${isActive('/history') ? ' active' : ''}`}>
-                  <IconHistory /> Riwayat
-                </Link>
-                <Link to="/profile" className={`bnav-item${isActive('/profile') ? ' active' : ''}`}>
-                  <IconHome /> Profil
-                </Link>
-              </nav>
+        {/* ── Header ── */}
+        <header className="sticky top-0 z-20 bg-[#0B1739] h-14 px-4 flex items-center justify-between gap-3 border-b border-white/[.06]">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <button
+              className="w-[34px] h-[34px] rounded-lg border border-white/10 bg-white/[.07] text-white/70 grid place-items-center cursor-pointer flex-shrink-0 transition hover:bg-white/15 hover:text-white"
+              onClick={() => setOpen(true)} aria-label="Menu">
+              <IconMenu />
+            </button>
+            <div className="min-w-0">
+              <div className="text-[9.5px] font-semibold tracking-[.14em] uppercase text-blue-300 opacity-65">Sistem Absensi</div>
+              <div className="text-[14px] font-bold text-white tracking-[-0.01em] truncate">{title}</div>
             </div>
           </div>
+          <div className="w-8 h-8 rounded-full bg-[#1A336E] border-[1.5px] border-white/15 text-blue-100 text-[11px] font-bold grid place-items-center flex-shrink-0">
+            {initials(authUser?.full_name || authUser?.name)}
+          </div>
+        </header>
 
+        {/* ── Drawer overlay ── */}
+        {open && (
+          <div className="fixed inset-0 z-40 bg-[rgba(6,13,31,.6)] backdrop-blur-[3px] animate-fade-in" onClick={close} />
+        )}
+
+        {/* ── Drawer ── */}
+        {open && (
+          <aside className="fixed top-0 left-0 z-50 w-[268px] h-[100dvh] bg-white flex flex-col animate-slide-in border-r border-slate-200">
+            <div className="bg-[#0B1739] px-4 pt-5 pb-[18px] flex items-start justify-between gap-2.5 border-b border-white/[.06]">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[#1A336E] border-[1.5px] border-white/15 text-blue-100 text-[13px] font-bold grid place-items-center flex-shrink-0">
+                  {initials(authUser?.full_name || authUser?.name)}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-white truncate max-w-[148px]">{authUser?.full_name || authUser?.name || 'User'}</div>
+                  <div className="text-[11px] text-white/40 truncate max-w-[148px] mt-0.5">{authUser?.email || '–'}</div>
+                </div>
+              </div>
+              <button
+                className="w-7 h-7 rounded-lg border border-white/10 bg-white/[.06] text-white/50 grid place-items-center cursor-pointer flex-shrink-0 transition hover:bg-white/14 hover:text-white"
+                onClick={close} aria-label="Tutup">
+                <IconClose />
+              </button>
+            </div>
+
+            <nav className="p-2.5 flex-1 overflow-y-auto">
+              <div className="text-[10px] font-semibold tracking-[.1em] uppercase text-slate-400 px-2 pb-2 pt-1">Menu Utama</div>
+              {[
+                { to: '/', label: 'Beranda', Icon: IconHome },
+                { to: '/attendance', label: 'Absensi', Icon: IconHistory },
+                { to: '/history', label: 'Riwayat Absensi', Icon: IconHistory },
+              ].map(({ to, label, Icon }) => (
+                <Link key={to} to={to} onClick={close}
+                  className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-[13px] font-medium no-underline transition mb-0.5 ${isActive(to) ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}>
+                  <span className={isActive(to) ? 'text-blue-600' : 'text-slate-400'}><Icon /></span>
+                  {label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="p-2.5 border-t border-slate-200">
+              <button
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-[12.5px] font-medium cursor-pointer transition hover:bg-red-100"
+                onClick={() => { handleLogout(); close(); }}>
+                <IconLogout /> Keluar dari Akun
+              </button>
+            </div>
+          </aside>
+        )}
+
+        {/* ── Main content ── */}
+        <main className="flex-1 px-[13px] pt-[14px] pb-[108px] flex flex-col gap-2.5">{children}</main>
+
+        {/* ── Bottom nav ── */}
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/97 backdrop-blur-lg border-t border-slate-200 px-[13px] pt-2.5 pb-safe-10 shadow-[0_-1px_0_rgba(0,0,0,.04),0_-8px_24px_rgba(0,0,0,.05)]">
+            <nav className="grid grid-cols-3 gap-1.5">
+              {[
+                { to: '/', label: 'Beranda', Icon: IconHome },
+                { to: '/history', label: 'Riwayat', Icon: IconHistory },
+                { to: '/profile', label: 'Profil', Icon: IconHome },
+              ].map(({ to, label, Icon }) => {
+                const active = isActive(to);
+                return (
+                  <Link key={to} to={to}
+                    className={`flex flex-col items-center gap-0.5 p-2 rounded-xl no-underline text-[10.5px] font-medium transition ${active ? 'bg-[#0B1739] text-white' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-900'}`}>
+                    <Icon />
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }

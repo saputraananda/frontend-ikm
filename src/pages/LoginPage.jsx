@@ -38,205 +38,103 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+    <div
+      className="min-h-[100dvh] flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0B1739 0%, #0ea5e9 60%, #06b6d4 100%)' }}
+    >
+      {/* Decorative blobs */}
+      <div className="absolute -top-[100px] -right-[80px] w-[360px] h-[360px] rounded-full bg-white/[.04] pointer-events-none" />
+      <div className="absolute -bottom-[60px] -left-[60px] w-[240px] h-[240px] rounded-full bg-white/[.03] pointer-events-none" />
 
-        .lp-shell {
-          min-height: 100dvh;
-          background: linear-gradient(160deg, #0B1739 0%, #0ea5e9 60%, #06b6d4 100%);
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          padding: 24px 16px;
-          position: relative; overflow: hidden;
-        }
-        .lp-blob1 {
-          position: absolute; width: 360px; height: 360px; border-radius: 50%;
-          background: rgba(255,255,255,.04); top: -100px; right: -80px;
-          pointer-events: none;
-        }
-        .lp-blob2 {
-          position: absolute; width: 240px; height: 240px; border-radius: 50%;
-          background: rgba(255,255,255,.03); bottom: -60px; left: -60px;
-          pointer-events: none;
-        }
-
-        .lp-frame {
-          width: 100%; max-width: 400px;
-          display: flex; flex-direction: column; gap: 24px;
-          position: relative; z-index: 1;
-        }
-
-        /* Brand */
-        .lp-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .lp-logo-wrap {
-          width: 72px; height: 72px; border-radius: 22px;
-          background: rgba(255,255,255,.12); backdrop-filter: blur(12px);
-          border: 1.5px solid rgba(255,255,255,.2);
-          display: grid; place-items: center;
-          box-shadow: 0 8px 32px rgba(0,0,0,.2);
-        }
-        .lp-logo-wrap img { width: 44px; height: 44px; object-fit: contain; }
-        .lp-title { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -.03em; text-align: center; }
-        .lp-sub { font-size: 13px; color: rgba(255,255,255,.55); font-weight: 500; text-align: center; }
-
-        /* Card */
-        .lp-card {
-          background: rgba(255,255,255,.97);
-          border-radius: 28px;
-          padding: 28px 24px;
-          box-shadow: 0 24px 80px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.15);
-        }
-
-        .lp-card-title { font-size: 17px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
-        .lp-card-sub { font-size: 12.5px; color: #94A3B8; font-weight: 500; margin-bottom: 22px; }
-
-        /* Error alert */
-        .lp-error {
-          background: #FEF2F2; border: 1px solid #FECACA; border-radius: 14px;
-          padding: 12px 14px; font-size: 12px; color: #991B1B;
-          line-height: 1.55; margin-bottom: 18px; font-weight: 500;
-        }
-
-        /* Field */
-        .lp-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-        .lp-label { font-size: 12px; font-weight: 600; color: #475569; }
-        .lp-input-wrap { position: relative; }
-        .lp-input-icon {
-          position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-          color: #94A3B8; display: grid; place-items: center; pointer-events: none;
-        }
-        .lp-input {
-          width: 100%; height: 48px; border-radius: 14px;
-          border: 1.5px solid #E2E8F0; background: #F8FAFC;
-          padding: 0 44px 0 44px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 13.5px; color: #0F172A; outline: none;
-          transition: border-color .15s, box-shadow .15s, background .15s;
-        }
-        .lp-input::placeholder { color: #CBD5E1; }
-        .lp-input:focus {
-          border-color: #0ea5e9; background: #fff;
-          box-shadow: 0 0 0 3px rgba(14,165,233,.12);
-        }
-        .lp-input-eye {
-          position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-          background: none; border: none; cursor: pointer; color: #94A3B8;
-          display: grid; place-items: center; padding: 4px;
-          transition: color .14s;
-        }
-        .lp-input-eye:hover { color: #64748B; }
-
-        /* Submit */
-        .lp-btn {
-          margin-top: 8px; width: 100%; height: 50px; border-radius: 15px; border: none;
-          background: linear-gradient(135deg, #0B1739 0%, #0ea5e9 100%);
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 14px; font-weight: 700; color: #fff;
-          cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-          box-shadow: 0 4px 20px rgba(14,165,233,.4);
-          transition: opacity .15s, transform .1s, box-shadow .15s;
-        }
-        .lp-btn:hover:not(:disabled) { opacity: .92; box-shadow: 0 6px 28px rgba(14,165,233,.5); }
-        .lp-btn:active:not(:disabled) { transform: scale(.985); }
-        .lp-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-        /* Spinner */
-        @keyframes lpSpin { to { transform: rotate(360deg); } }
-        .lp-spinner {
-          width: 18px; height: 18px; border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,.3);
-          border-top-color: #fff;
-          animation: lpSpin .7s linear infinite;
-        }
-
-        /* Footer */
-        .lp-footer { text-align: center; font-size: 11.5px; color: rgba(255,255,255,.35); font-weight: 500; }
-      `}</style>
-
-      <div className="lp-shell">
-        <div className="lp-blob1" />
-        <div className="lp-blob2" />
-
-        <div className="lp-frame">
-          {/* Brand */}
-          <div className="lp-brand">
-            <div className="lp-logo-wrap">
-              <img src={ikmLogo} alt="IKM" />
-            </div>
-            <div>
-              <div className="lp-title">IKM Mobile</div>
-              <div className="lp-sub">Sistem Absensi Karyawan</div>
-            </div>
+      <div className="w-full max-w-[400px] flex flex-col gap-6 relative z-10">
+        {/* Brand */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-[72px] h-[72px] rounded-[22px] bg-white/10 backdrop-blur-xl border border-white/20 grid place-items-center shadow-[0_8px_32px_rgba(0,0,0,.2)]">
+            <img src={ikmLogo} alt="IKM" className="w-11 h-11 object-contain" />
           </div>
+          <div className="text-center">
+            <div className="text-[22px] font-extrabold text-white tracking-tight">IKM Mobile</div>
+            <div className="text-[13px] text-white/55 font-medium">Sistem Absensi Karyawan</div>
+          </div>
+        </div>
 
-          {/* Card */}
-          <div className="lp-card">
-            <div className="lp-card-title">Selamat Datang 👋</div>
-            <div className="lp-card-sub">Masuk dengan akun karyawan Anda</div>
+        {/* Card */}
+        <div className="bg-white rounded-[28px] px-6 py-7 shadow-[0_24px_80px_rgba(0,0,0,.25),0_0_0_1px_rgba(255,255,255,.15)]">
+          <div className="text-[17px] font-extrabold text-slate-900 mb-1">Selamat Datang 👋</div>
+          <div className="text-[12.5px] text-slate-400 font-medium mb-5">Masuk dengan akun karyawan Anda</div>
 
-            {error && <div className="lp-error">{error}</div>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-[14px] px-[14px] py-3 text-[12px] text-red-800 leading-snug mb-[18px] font-medium">
+              {error}
+            </div>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="lp-field">
-                <label className="lp-label">Username</label>
-                <div className="lp-input-wrap">
-                  <span className="lp-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="10" cy="7" r="3"/>
-                      <path d="M3 18c0-3.314 3.134-6 7-6s7 2.686 7 6"/>
-                    </svg>
-                  </span>
-                  <input
-                    className="lp-input"
-                    type="text" name="username" value={form.username}
-                    onChange={handleChange} placeholder="username"
-                    autoComplete="username" required
-                  />
-                </div>
+          <form onSubmit={handleSubmit}>
+            {/* Username */}
+            <div className="flex flex-col gap-1.5 mb-3.5">
+              <label className="text-[12px] font-semibold text-slate-600">Username</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none grid place-items-center">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="10" cy="7" r="3"/><path d="M3 18c0-3.314 3.134-6 7-6s7 2.686 7 6"/>
+                  </svg>
+                </span>
+                <input
+                  className="w-full h-12 rounded-[14px] border border-slate-200 bg-slate-50 pl-11 pr-3 font-sans text-[13.5px] text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,.12)]"
+                  type="text" name="username" value={form.username}
+                  onChange={handleChange} placeholder="username"
+                  autoComplete="username" required
+                />
               </div>
+            </div>
 
-              <div className="lp-field">
-                <label className="lp-label">Password</label>
-                <div className="lp-input-wrap">
-                  <span className="lp-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="4" y="9" width="12" height="9" rx="2"/>
-                      <path d="M7 9V6a3 3 0 0 1 6 0v3"/>
-                    </svg>
-                  </span>
-                  <input
-                    className="lp-input"
-                    type={showPass ? 'text' : 'password'} name="password" value={form.password}
-                    onChange={handleChange} placeholder="••••••••"
-                    autoComplete="current-password" required
-                  />
-                  <button type="button" className="lp-input-eye" onClick={() => setShowPass(p => !p)} tabIndex={-1}>
-                    {showPass
-                      ? <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/><line x1="2" y1="2" x2="18" y2="18"/></svg>
-                      : <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
-                    }
-                  </button>
-                </div>
+            {/* Password */}
+            <div className="flex flex-col gap-1.5 mb-3.5">
+              <label className="text-[12px] font-semibold text-slate-600">Password</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none grid place-items-center">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="9" width="12" height="9" rx="2"/><path d="M7 9V6a3 3 0 0 1 6 0v3"/>
+                  </svg>
+                </span>
+                <input
+                  className="w-full h-12 rounded-[14px] border border-slate-200 bg-slate-50 pl-11 pr-11 font-sans text-[13.5px] text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-sky-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(14,165,233,.12)]"
+                  type={showPass ? 'text' : 'password'} name="password" value={form.password}
+                  onChange={handleChange} placeholder="••••••••"
+                  autoComplete="current-password" required
+                />
+                <button type="button"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600 transition p-1 grid place-items-center"
+                  onClick={() => setShowPass(p => !p)} tabIndex={-1}>
+                  {showPass
+                    ? <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/><line x1="2" y1="2" x2="18" y2="18"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
+                  }
+                </button>
               </div>
+            </div>
 
-              <button type="submit" className="lp-btn" disabled={loading}>
-                {loading ? <div className="lp-spinner" /> : (
-                  <>
+            <button type="submit"
+              className="mt-2 w-full h-[50px] rounded-[15px] border-none text-[14px] font-bold text-white flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(14,165,233,.4)] transition hover:opacity-90 active:scale-[.985] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #0B1739 0%, #0ea5e9 100%)' }}
+              disabled={loading}>
+              {loading
+                ? <div className="w-[18px] h-[18px] rounded-full border-[2.5px] border-white/30 border-t-white animate-spin" />
+                : <>
                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M13 3h4a1 1 0 011 1v12a1 1 0 01-1 1h-4"/><polyline points="9,7 13,10 9,13"/><line x1="13" y1="10" x2="3" y2="10"/>
                     </svg>
                     Masuk
                   </>
-                )}
-              </button>
-            </form>
-          </div>
+              }
+            </button>
+          </form>
+        </div>
 
-          <div className="lp-footer">© {new Date().getFullYear()} Part Of Alora Group Indonesia</div>
+        <div className="text-center text-[11.5px] text-white/35 font-medium">
+          © {new Date().getFullYear()} Part Of Alora Group Indonesia
         </div>
       </div>
-    </>
+    </div>
   );
 }

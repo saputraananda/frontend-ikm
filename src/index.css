@@ -1,13 +1,88 @@
 @import "tailwindcss";
 
-@layer base {
-  html {
-    @apply font-sans;
-  }
-
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-html, body, #root { height: 100%; }
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    @apply font-sans bg-slate-100 text-slate-900 antialiased;
+  }
+  html, body, #root { height: 100%; }
+}
+
+/* ── CSS Variables (used by ReportLeader form styles) ── */
+:root {
+  --n-900: #0F172A; --n-800: #1E293B; --n-700: #334155;
+  --n-500: #64748B; --n-400: #94A3B8; --n-200: #E2E8F0;
+  --n-100: #F1F5F9; --n-50:  #F8FAFC; --white: #FFFFFF;
+  --navy-900: #0B1739; --navy-600: #1E3A8A; --navy-500: #1D4ED8;
+  --navy-400: #3B82F6; --navy-300: #93C5FD; --navy-100: #DBEAFE; --navy-50: #EFF6FF;
+  --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+  --danger: #DC2626;  --danger-bg:  #FEF2F2; --danger-border:  #FECACA;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(15,23,42,.06);
+}
+
+/* ── Keyframes ── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
+@keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
+@keyframes slideUp  { from { transform:translateY(100%) } to { transform:translateY(0) } }
+@keyframes slideIn  { from { transform:translateX(-100%) } to { transform:translateX(0) } }
+@keyframes shimmer  { 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
+@keyframes gpsPulse { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+@keyframes formFadeIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+@keyframes toastPop { from { opacity:0; transform:scale(.85) } to { opacity:1; transform:scale(1) } }
+
+/* ── Animation helpers ── */
+.animate-fade-up    { animation: fadeUp    .4s  ease-out both; }
+.animate-fade-in    { animation: fadeIn    .2s  ease both; }
+.animate-slide-up   { animation: slideUp   .22s cubic-bezier(.22,.68,0,1.1) both; }
+.animate-slide-in   { animation: slideIn   .24s cubic-bezier(.22,.68,0,1.1) both; }
+.animate-shimmer    { animation: shimmer   1.3s ease infinite; }
+.animate-gps-pulse  { animation: gpsPulse  1.8s infinite; }
+.animate-form-fade  { animation: formFadeIn .4s ease; }
+.animate-toast-pop  { animation: toastPop  .35s cubic-bezier(.22,.68,0,1.2); }
+
+/* ── Safe-area padding ── */
+.pb-safe-6  { padding-bottom: calc(env(safe-area-inset-bottom) + 6px);  }
+.pb-safe-10 { padding-bottom: calc(env(safe-area-inset-bottom) + 10px); }
+.pb-safe-20 { padding-bottom: calc(env(safe-area-inset-bottom) + 20px); }
+
+/* ── Range input custom styling ── */
+.range-track {
+  width:100%; height:6px; border-radius:3px;
+  -webkit-appearance:none; appearance:none;
+  background: linear-gradient(to right, var(--navy-400) var(--pct,50%), var(--n-200) var(--pct,50%));
+  outline:none; cursor:pointer;
+}
+.range-track::-webkit-slider-thumb {
+  -webkit-appearance:none; width:20px; height:20px;
+  border-radius:50%; background:var(--navy-500);
+  border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.2); cursor:pointer;
+}
+
+/* ── ReportLeader: custom radio & checkbox ── */
+.radio-option { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md); border:1px solid var(--n-200); background:var(--n-50); cursor:pointer; transition:all .2s; margin-bottom:0; }
+.radio-option:hover { border-color:var(--navy-300); background:var(--navy-50); }
+.radio-option.selected { border-color:var(--navy-400); background:var(--navy-50); box-shadow:0 0 0 3px rgba(59,130,246,.1); }
+.radio-option input[type="radio"] { display:none; }
+.radio-dot { width:18px; height:18px; border-radius:50%; border:2px solid var(--n-300); flex-shrink:0; display:grid; place-items:center; transition:all .2s; }
+.radio-option.selected .radio-dot { border-color:var(--navy-500); }
+.radio-dot::after { content:''; width:8px; height:8px; border-radius:50%; background:transparent; transition:background .2s; }
+.radio-option.selected .radio-dot::after { background:var(--navy-500); }
+.radio-label { font-size:13px; font-weight:500; color:var(--n-700); }
+.radio-desc  { font-size:11px; color:var(--n-400); margin-top:1px; }
+
+.check-option { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:var(--r-md); border:1px solid var(--n-200); background:var(--n-50); cursor:pointer; transition:all .2s; margin-bottom:0; }
+.check-option:hover { border-color:var(--navy-300); background:var(--navy-50); }
+.check-option.selected { border-color:#059669; background:#ECFDF5; }
+.check-box { width:18px; height:18px; border-radius:4px; border:2px solid var(--n-300); flex-shrink:0; display:grid; place-items:center; transition:all .2s; margin-top:1px; }
+.check-option.selected .check-box { border-color:#059669; background:#059669; }
+.check-box svg { opacity:0; transition:opacity .2s; }
+.check-option.selected .check-box svg { opacity:1; }
+.check-label { font-size:13px; font-weight:500; color:var(--n-700); }

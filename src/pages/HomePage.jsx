@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
 
-/* ── Helpers ─────────────────────────────────────────────────────── */
 const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 const fmt2 = n => String(n).padStart(2, '0');
@@ -12,23 +11,6 @@ const titleCase = s => (!s ? '' : s.toLowerCase().replace(/\b\w/g, c => c.toUppe
 const greeting = () => { const h = new Date().getHours(); if (h < 11) return 'Selamat Pagi'; if (h < 15) return 'Selamat Siang'; if (h < 18) return 'Selamat Sore'; return 'Selamat Malam'; };
 const greetEmoji = () => { const h = new Date().getHours(); if (h < 11) return '☀️'; if (h < 15) return '🌤️'; if (h < 18) return '🌅'; return '🌙'; };
 
-/* getWeekDates — commented out along with calendar strip
-function getWeekDates(baseDate) {
-    const d = new Date(baseDate);
-    const day = d.getDay();
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - ((day === 0 ? 7 : day) - 1));
-    const week = [];
-    for (let i = 0; i < 7; i++) {
-        const dt = new Date(monday);
-        dt.setDate(monday.getDate() + i);
-        week.push(dt);
-    }
-    return week;
-}
-*/
-
-/* ── Progress Ring ───────────────────────────────────────────────── */
 function ProgressRing({ done, total, size = 56 }) {
     const stroke = 5;
     const r = (size - stroke) / 2;
@@ -37,11 +19,11 @@ function ProgressRing({ done, total, size = 56 }) {
     const offset = circ * (1 - pct);
     return (
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke} />
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke}/>
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
                 strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-                style={{ transition: 'stroke-dashoffset .6s ease' }} />
-            <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central" fill="#fff"
+                style={{ transition: 'stroke-dashoffset .6s ease' }}/>
+            <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central" fill="#fff"
                 fontSize="14" fontWeight="800" style={{ transform: 'rotate(90deg)', transformOrigin: 'center' }}>
                 {done}/{total}
             </text>
@@ -49,66 +31,51 @@ function ProgressRing({ done, total, size = 56 }) {
     );
 }
 
-/* ── Icons ───────────────────────────────────────────────────────── */
 const IconHome = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" /><path d="M7.5 18V12.5h5V18" />
+        <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M7.5 18V12.5h5V18"/>
     </svg>
 );
 const IconHistory = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="14" height="13" rx="2" />
-        <line x1="3" y1="8" x2="17" y2="8" /><line x1="7" y1="2" x2="7" y2="5" /><line x1="13" y1="2" x2="13" y2="5" />
+        <rect x="3" y="4" width="14" height="13" rx="2"/>
+        <line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2" x2="7" y2="5"/><line x1="13" y1="2" x2="13" y2="5"/>
     </svg>
 );
 const IconUser = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="10" cy="7" r="4" /><path d="M3 17c0-3 3.13-5 7-5s7 2 7 5" />
+        <circle cx="10" cy="7" r="4"/><path d="M3 17c0-3 3.13-5 7-5s7 2 7 5"/>
     </svg>
 );
 
-/* ── Menu Items ──────────────────────────────────────────────────── */
 const MENU_ITEMS = [
-    {
-        key: 'absensi', label: 'Absensi', to: '/attendance',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>,
-        bg: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)',
-    },
-    {
-        key: 'riwayat', label: 'Riwayat', to: '/history',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12,7 12,12 15,14" /></svg>,
-        bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)',
-    },
-    {
-        key: 'profil', label: 'Profil', to: '/profile',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.58-6 8-6s8 2 8 6" /></svg>,
-        bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)',
-    },
-    {
-        key: 'shift', label: 'Info Shift', to: '/attendance',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="9" y1="2" x2="9" y2="6" /><line x1="15" y1="2" x2="15" y2="6" /></svg>,
-        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)',
-    },
-    {
-        key: 'formulir', label: 'Formulir', to: '/report',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14,2 14,8 20,8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10,9 9,9 8,9" /></svg>,
-        bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)',
-    },
-    {
-        key: 'bantuan', label: 'Bantuan', to: null,
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><circle cx="12" cy="17" r=".5" fill="#6366F1" /></svg>,
-        bg: 'linear-gradient(135deg, #E0E7FF 0%, #EEF2FF 100%)',
-    },
+    { key: 'absensi', label: 'Absensi', to: '/attendance',
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
+      bg: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)' },
+    { key: 'riwayat', label: 'Riwayat', to: '/history',
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>,
+      bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)' },
+    { key: 'profil', label: 'Profil', to: '/profile',
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-6 8-6s8 2 8 6"/></svg>,
+      bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)' },
+    { key: 'shift', label: 'Info Shift', to: '/attendance',
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>,
+      bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
+    { key: 'formulir', label: 'Formulir', to: '/report',
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>,
+      bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)' },
+    { key: 'bantuan', label: 'Bantuan', to: null,
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="#6366F1"/></svg>,
+      bg: 'linear-gradient(135deg, #E0E7FF 0%, #EEF2FF 100%)' },
 ];
 
 const SHIFT_META = {
-    pagi: { label: 'Pagi', color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A', text: '#92400E', icon: '🌅' },
-    siang: { label: 'Siang', color: '#3B82F6', bg: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF', icon: '☀️' },
-    sore: { label: 'Sore', color: '#8B5CF6', bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', icon: '🌆' },
-    lembur: { label: 'Lembur', color: '#F43F5E', bg: '#FFF1F2', border: '#FECDD3', text: '#9F1239', icon: '🌙' },
+    pagi:   { label: 'Pagi',   bg: '#FFFBEB', icon: '🌅' },
+    siang:  { label: 'Siang',  bg: '#EFF6FF', icon: '☀️' },
+    sore:   { label: 'Sore',   bg: '#F5F3FF', icon: '🌆' },
+    lembur: { label: 'Lembur', bg: '#FFF1F2', icon: '🌙' },
 };
 
-/* ══════════════════════════════════════════════════════════════════ */
 export default function HomePage() {
     const routerLocation = useLocation();
     const authUser = useAuthStore(s => s.user);
@@ -121,13 +88,10 @@ export default function HomePage() {
     const empId = profile?.employee_code || profile?.employee_id || '';
 
     useEffect(() => { document.title = 'Beranda | IKM Mobile'; }, []);
-
     useEffect(() => {
-        api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
-        api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => { });
+        api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => {});
+        api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => {});
     }, []);
-
-    // Live clock
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(id);
@@ -148,607 +112,204 @@ export default function HomePage() {
         return `${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
     }, []);
 
+    const isActive = (p) => routerLocation.pathname === p;
+
     return (
-        <>
-            <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F1F5F9; -webkit-font-smoothing: antialiased; }
+        <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
+            <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
 
-        @keyframes hp-fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes hp-fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes hp-pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
-        @keyframes hp-scaleIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-b-[32px] flex-shrink-0 pb-[30px]"
+                    style={{ background: 'linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%)' }}>
+                    {/* Decorative blobs */}
+                    <div className="absolute -top-[80px] -right-[50px] w-[220px] h-[220px] rounded-full animate-pulse"
+                        style={{ background: 'radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%)' }} />
+                    <div className="absolute -bottom-[40px] -left-[40px] w-[160px] h-[160px] rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%)' }} />
+                    {/* Dot pattern */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[.04]"
+                        style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
 
-        .hp-shell { min-height: 100dvh; background: #F1F5F9; display: flex; justify-content: center; }
-        .hp-frame { width: 100%; max-width: 430px; min-height: 100dvh; background: #F8FAFC; display: flex; flex-direction: column; box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 8px 48px rgba(0,0,0,.08); position: relative; overflow: hidden; }
-
-        /* Hero header */
-        .hp-hero {
-          background: linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%);
-          padding: 0 0 30px;
-          border-radius: 0 0 32px 32px;
-          position: relative;
-          overflow: hidden;
-        }
-        .hp-hero::before {
-          content: '';
-          position: absolute; top: -80px; right: -50px;
-          width: 220px; height: 220px;
-          background: radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%);
-          border-radius: 50%;
-          animation: hp-pulse 4s ease-in-out infinite;
-        }
-        .hp-hero::after {
-          content: '';
-          position: absolute; bottom: -40px; left: -40px;
-          width: 160px; height: 160px;
-          background: radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%);
-          border-radius: 50%;
-        }
-        .hp-hero-pattern {
-          position: absolute; inset: 0; opacity: .04;
-          background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0);
-          background-size: 24px 24px;
-          pointer-events: none;
-        }
-        .hp-hero-top {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 16px 20px 0;
-          position: relative; z-index: 1;
-        }
-        .hp-hero-user {
-          display: flex; align-items: center; gap: 12px;
-          flex: 1; min-width: 0;
-        }
-        .hp-avatar {
-          width: 46px; height: 46px; border-radius: 14px;
-          background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.25);
-          color: #fff; font-size: 14px; font-weight: 800; letter-spacing: .5px;
-          display: grid; place-items: center; flex-shrink: 0;
-          backdrop-filter: blur(8px);
-        }
-        .hp-user-info { min-width: 0; overflow: hidden; }
-        .hp-user-name {
-          font-size: 15px; font-weight: 800; color: #fff;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          letter-spacing: -.2px;
-        }
-        .hp-user-role {
-          font-size: 11px; color: rgba(255,255,255,.55); font-weight: 500;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          margin-top: 2px;
-        }
-        .hp-hero-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .hp-hero-btn {
-          width: 38px; height: 38px; border-radius: 12px;
-          background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12);
-          color: #fff; display: grid; place-items: center;
-          cursor: pointer; transition: all .15s;
-          backdrop-filter: blur(8px);
-        }
-        .hp-hero-btn:hover { background: rgba(255,255,255,.2); }
-
-        /* Live clock + greeting */
-        .hp-hero-body {
-          padding: 20px 20px 0;
-          position: relative; z-index: 1;
-          display: flex; align-items: center; justify-content: space-between;
-        }
-        .hp-greeting-left { flex: 1; }
-        .hp-greeting-text {
-          font-size: 13px; color: rgba(255,255,255,.6); font-weight: 500;
-          display: flex; align-items: center; gap: 6px;
-        }
-        .hp-live-time {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 28px; font-weight: 700; color: #fff;
-          letter-spacing: -1px; margin-top: 4px;
-          line-height: 1.1;
-        }
-        .hp-live-date {
-          font-size: 12px; color: rgba(255,255,255,.45); font-weight: 500; margin-top: 6px;
-        }
-
-        /* Floating menu card */
-        .hp-menu-card {
-          margin: 14px 16px 0;
-          background: #fff;
-          border-radius: 22px;
-          padding: 20px 14px 16px;
-          box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.03);
-          position: relative; z-index: 2;
-          animation: hp-fadeUp .4s ease-out both;
-        }
-        .hp-menu-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 0 6px 14px;
-        }
-        .hp-menu-title {
-          font-size: 14px; font-weight: 800; color: #0F172A;
-          letter-spacing: -.2px;
-        }
-        .hp-menu-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-        }
-        .hp-menu-item {
-          display: flex; flex-direction: column; align-items: center;
-          gap: 8px; padding: 14px 6px 12px;
-          border-radius: 16px;
-          text-decoration: none;
-          cursor: pointer;
-          transition: all .15s ease;
-          border: none; font-family: inherit;
-          background: transparent;
-          position: relative;
-        }
-        .hp-menu-item:hover { background: #F8FAFC; transform: translateY(-2px); }
-        .hp-menu-item:active { transform: scale(.95); }
-        .hp-menu-icon {
-          width: 50px; height: 50px; border-radius: 16px;
-          display: grid; place-items: center;
-          flex-shrink: 0;
-          transition: transform .15s, box-shadow .15s;
-        }
-        .hp-menu-item:hover .hp-menu-icon {
-          transform: scale(1.06);
-          box-shadow: 0 4px 12px rgba(0,0,0,.08);
-        }
-        .hp-menu-label {
-          font-size: 11px; font-weight: 600; color: #475569;
-          text-align: center; line-height: 1.3;
-        }
-
-        /* Calendar strip */
-        .hp-cal-section {
-          padding: 18px 16px 0;
-          animation: hp-fadeUp .5s ease-out both;
-          animation-delay: .1s;
-        }
-        .hp-cal-header {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 12px;
-        }
-        .hp-cal-title {
-          font-size: 14px; font-weight: 800; color: #0F172A;
-          letter-spacing: -.2px;
-        }
-        .hp-cal-month {
-          font-size: 11.5px; font-weight: 600; color: #3B82F6;
-          background: #EFF6FF; padding: 4px 10px; border-radius: 8px;
-        }
-        .hp-cal-strip {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 6px;
-          background: #fff;
-          border-radius: 18px;
-          padding: 12px 8px;
-          box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
-        }
-        .hp-cal-day {
-          display: flex; flex-direction: column; align-items: center; gap: 6px;
-          padding: 8px 0 10px;
-          border-radius: 14px;
-          transition: all .2s ease;
-          cursor: default;
-          position: relative;
-        }
-        .hp-cal-day.today {
-          background: linear-gradient(135deg, #1D4ED8, #3B82F6);
-          box-shadow: 0 4px 14px rgba(29,78,216,.35);
-        }
-        .hp-cal-day.past { opacity: .5; }
-        .hp-cal-day-name {
-          font-size: 10px; font-weight: 700; color: #94A3B8;
-          text-transform: uppercase; letter-spacing: .5px;
-        }
-        .hp-cal-day.today .hp-cal-day-name { color: rgba(255,255,255,.7); }
-        .hp-cal-day-num {
-          font-size: 15px; font-weight: 800; color: #1E293B;
-          width: 30px; height: 30px; display: grid; place-items: center;
-          border-radius: 10px;
-        }
-        .hp-cal-day.today .hp-cal-day-num { color: #fff; }
-
-        /* Quick action banner */
-        .hp-section { padding: 18px 16px 0; }
-        .hp-quick-banner {
-          background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #1D4ED8 100%);
-          border-radius: 20px; padding: 18px 20px;
-          display: flex; align-items: center; gap: 16px;
-          cursor: pointer; text-decoration: none;
-          transition: all .15s ease;
-          box-shadow: 0 8px 24px rgba(15,23,42,.2);
-          position: relative; overflow: hidden;
-          animation: hp-fadeUp .5s ease-out both;
-          animation-delay: .15s;
-        }
-        .hp-quick-banner::before {
-          content: '';
-          position: absolute; top: -20px; right: -20px;
-          width: 100px; height: 100px;
-          background: radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%);
-          border-radius: 50%;
-        }
-        .hp-quick-banner:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(15,23,42,.25); }
-        .hp-quick-banner:active { transform: scale(.98); }
-        .hp-quick-icon {
-          width: 48px; height: 48px; border-radius: 14px;
-          background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.25);
-          display: grid; place-items: center; flex-shrink: 0;
-          position: relative; z-index: 1;
-        }
-        .hp-quick-text { flex: 1; position: relative; z-index: 1; }
-        .hp-quick-title { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -.2px; }
-        .hp-quick-desc  { font-size: 11.5px; color: rgba(255,255,255,.45); margin-top: 3px; font-weight: 500; }
-        .hp-quick-arrow {
-          width: 32px; height: 32px; border-radius: 10px;
-          background: rgba(255,255,255,.08);
-          display: grid; place-items: center;
-          color: rgba(255,255,255,.5); flex-shrink: 0;
-          position: relative; z-index: 1;
-        }
-
-        /* Section headers */
-        .hp-section-header {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 12px;
-        }
-        .hp-section-title {
-          font-size: 14px; font-weight: 800; color: #0F172A;
-          letter-spacing: -.2px;
-        }
-        .hp-section-link {
-          font-size: 11.5px; font-weight: 600; color: #3B82F6;
-          text-decoration: none;
-          padding: 4px 10px;
-          border-radius: 8px;
-          transition: background .15s;
-        }
-        .hp-section-link:hover { background: #EFF6FF; }
-
-        /* Shift timeline */
-        .hp-shifts-wrap {
-          animation: hp-fadeUp .5s ease-out both;
-          animation-delay: .2s;
-        }
-        .hp-shift-timeline {
-          display: flex; flex-direction: column; gap: 8px;
-        }
-        .hp-shift-card {
-          display: flex; align-items: center; gap: 12px;
-          padding: 14px 16px;
-          background: #fff;
-          border-radius: 16px;
-          border: 1px solid transparent;
-          box-shadow: 0 1px 3px rgba(0,0,0,.04);
-          transition: all .15s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .hp-shift-card::before {
-          content: '';
-          position: absolute; left: 0; top: 0; bottom: 0;
-          width: 4px;
-          border-radius: 0 4px 4px 0;
-        }
-        .hp-shift-card.done { border-color: rgba(16,185,129,.15); }
-        .hp-shift-card.done::before { background: #10B981; }
-        .hp-shift-card.pending::before { background: #E2E8F0; }
-        .hp-shift-emoji {
-          font-size: 20px; width: 40px; height: 40px;
-          border-radius: 12px; display: grid; place-items: center;
-          flex-shrink: 0;
-        }
-        .hp-shift-info { flex: 1; min-width: 0; }
-        .hp-shift-name {
-          font-size: 13px; font-weight: 700; color: #0F172A;
-        }
-        .hp-shift-time {
-          font-size: 11px; font-weight: 500; color: #94A3B8;
-          margin-top: 2px; display: flex; align-items: center; gap: 4px;
-        }
-        .hp-shift-time-val {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px; font-weight: 600;
-        }
-        .hp-shift-badge {
-          font-size: 10px; font-weight: 700; padding: 4px 10px;
-          border-radius: 100px; letter-spacing: .02em;
-          display: flex; align-items: center; gap: 4px;
-          flex-shrink: 0;
-        }
-        .hp-shift-badge.done { background: #ECFDF5; color: #065F46; }
-        .hp-shift-badge.pending { background: #F1F5F9; color: #94A3B8; }
-
-        /* progress bar */
-        .hp-progress-section {
-          animation: hp-fadeUp .5s ease-out both;
-          animation-delay: .18s;
-        }
-        .hp-progress-card {
-          background: #fff; border-radius: 16px; padding: 16px;
-          box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
-        }
-        .hp-progress-top {
-          display: flex; align-items: center; justify-content: space-between;
-          margin-bottom: 12px;
-        }
-        .hp-progress-label { font-size: 12px; font-weight: 600; color: #64748B; }
-        .hp-progress-count { font-size: 12px; font-weight: 800; color: #0F172A; }
-        .hp-progress-bar-bg {
-          height: 8px; background: #F1F5F9; border-radius: 100px;
-          overflow: hidden;
-        }
-        .hp-progress-bar-fill {
-          height: 100%; border-radius: 100px;
-          background: linear-gradient(90deg, #3B82F6, #1D4ED8);
-          transition: width .6s ease;
-        }
-
-        /* Empty state */
-        .hp-empty-card {
-          background: #fff; border-radius: 20px;
-          padding: 32px 20px; text-align: center;
-          box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
-        }
-        .hp-empty-icon {
-          width: 64px; height: 64px; border-radius: 20px;
-          background: #F8FAFC; display: grid; place-items: center;
-          margin: 0 auto 14px;
-        }
-        .hp-empty-title { font-size: 14px; font-weight: 800; color: #1E293B; margin-bottom: 4px; }
-        .hp-empty-desc { font-size: 12px; color: #94A3B8; font-weight: 500; line-height: 1.5; }
-
-        /* Content area */
-        .hp-content { flex: 1; overflow-y: auto; padding-bottom: 100px; }
-
-        /* Bottom nav */
-        .hp-bnav-wrap { position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; justify-content:center; pointer-events:none; width:100%; }
-        .hp-bnav {
-          pointer-events:auto; width:100%; max-width:430px;
-          background: rgba(255,255,255,.92);
-          backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(226,232,240,.6);
-          padding: 6px 20px calc(env(safe-area-inset-bottom) + 6px);
-          box-shadow: 0 -4px 24px rgba(0,0,0,.06);
-        }
-        .hp-bnav-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; width:100%; }
-        .hp-bnav-item {
-          display:flex; flex-direction:column; align-items:center; gap:4px;
-          padding: 8px 8px 6px;
-          border-radius: 14px;
-          text-decoration:none;
-          font-size: 10px; font-weight: 600; letter-spacing: .02em;
-          color: #94A3B8;
-          transition: all .2s ease;
-          position: relative;
-        }
-        .hp-bnav-item:hover { color: #475569; }
-        .hp-bnav-item.active {
-          color: #1D4ED8;
-        }
-        .hp-bnav-item.active::before {
-          content: '';
-          position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-          width: 20px; height: 3px;
-          background: #1D4ED8; border-radius: 0 0 3px 3px;
-        }
-        .hp-bnav-item svg { opacity: .5; transition: opacity .15s; }
-        .hp-bnav-item.active svg { stroke: #1D4ED8; opacity: 1; }
-      `}</style>
-
-            <div className="hp-shell">
-                <div className="hp-frame">
-
-                    {/* ── Hero Header ── */}
-                    <div className="hp-hero">
-                        <div className="hp-hero-pattern" />
-                        <div className="hp-hero-top">
-                            <div className="hp-hero-user">
-                                <div className="hp-avatar">{initials(displayName)}</div>
-                                <div className="hp-user-info">
-                                    <div className="hp-user-name">{displayName}</div>
-                                    <div className="hp-user-role">{role}{empId && ` · ${empId}`}</div>
-                                </div>
+                    {/* Top row */}
+                    <div className="relative z-[1] flex items-center justify-between px-5 pt-4">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-[46px] h-[46px] rounded-[14px] bg-white/15 border-2 border-white/25 text-white text-[14px] font-extrabold grid place-items-center flex-shrink-0 backdrop-blur-xl">
+                                {initials(displayName)}
                             </div>
-                            <div className="hp-hero-actions">
-                                <button className="hp-hero-btn" aria-label="Notifikasi">
-                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M10 2a5 5 0 0 1 5 5c0 5 2 6 2 6H3s2-1 2-6a5 5 0 0 1 5-5z" />
-                                        <path d="M8.5 17a1.5 1.5 0 0 0 3 0" />
-                                    </svg>
-                                </button>
+                            <div className="min-w-0 overflow-hidden">
+                                <div className="text-[15px] font-extrabold text-white truncate tracking-[-0.2px]">{displayName}</div>
+                                <div className="text-[11px] text-white/55 font-medium truncate mt-0.5">{role}{empId && ` · ${empId}`}</div>
                             </div>
                         </div>
+                        <button className="w-[38px] h-[38px] rounded-[12px] bg-white/10 border border-white/12 text-white grid place-items-center cursor-pointer transition hover:bg-white/20 backdrop-blur-xl flex-shrink-0"
+                            aria-label="Notifikasi">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 2a5 5 0 0 1 5 5c0 5 2 6 2 6H3s2-1 2-6a5 5 0 0 1 5-5z"/>
+                                <path d="M8.5 17a1.5 1.5 0 0 0 3 0"/>
+                            </svg>
+                        </button>
+                    </div>
 
-                        <div className="hp-hero-body">
-                            <div className="hp-greeting-left">
-                                <div className="hp-greeting-text">{greeting()} {greetEmoji()}</div>
-                                <div className="hp-live-time">{liveTime}</div>
-                                <div className="hp-live-date">{DAYS_ID[now.getDay()]}, {now.getDate()} {MONTHS_ID[now.getMonth()]} {now.getFullYear()}</div>
-                            </div>
-                            {shiftSummary && (
-                                <ProgressRing done={shiftSummary.done} total={shiftSummary.total} />
+                    {/* Clock + greeting */}
+                    <div className="relative z-[1] flex items-center justify-between px-5 pt-5">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-1.5 text-[13px] text-white/60 font-medium">{greeting()} {greetEmoji()}</div>
+                            <div className="font-mono text-[28px] font-bold text-white tracking-[-1px] mt-1 leading-[1.1]">{liveTime}</div>
+                            <div className="text-[12px] text-white/45 font-medium mt-1.5">{DAYS_ID[now.getDay()]}, {now.getDate()} {MONTHS_ID[now.getMonth()]} {now.getFullYear()}</div>
+                        </div>
+                        {shiftSummary && <ProgressRing done={shiftSummary.done} total={shiftSummary.total} />}
+                    </div>
+                </div>
+
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto pb-[100px]">
+
+                    {/* Menu card */}
+                    <div className="mx-4 mt-[14px] bg-white rounded-[22px] px-[14px] pt-5 pb-4 shadow-[0_8px_32px_rgba(0,0,0,.08),0_0_0_1px_rgba(0,0,0,.03)] animate-fade-up">
+                        <div className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px] px-1.5 pb-3.5">Menu Utama</div>
+                        <div className="grid grid-cols-3 gap-1.5">
+                            {MENU_ITEMS.map((item) =>
+                                item.to ? (
+                                    <Link key={item.key} to={item.to}
+                                        className="flex flex-col items-center gap-2 py-3.5 px-1.5 rounded-[16px] no-underline cursor-pointer transition hover:bg-slate-50 hover:-translate-y-0.5 active:scale-[.95]">
+                                        <div className="w-[50px] h-[50px] rounded-[16px] grid place-items-center flex-shrink-0 transition hover:scale-[1.06]"
+                                            style={{ background: item.bg }}>{item.icon}</div>
+                                        <span className="text-[11px] font-semibold text-slate-500 text-center leading-snug">{item.label}</span>
+                                    </Link>
+                                ) : (
+                                    <button key={item.key}
+                                        onClick={() => {}}
+                                        className="flex flex-col items-center gap-2 py-3.5 px-1.5 rounded-[16px] bg-transparent border-none font-[inherit] cursor-pointer transition hover:bg-slate-50 hover:-translate-y-0.5 active:scale-[.95]">
+                                        <div className="w-[50px] h-[50px] rounded-[16px] grid place-items-center flex-shrink-0"
+                                            style={{ background: item.bg }}>{item.icon}</div>
+                                        <span className="text-[11px] font-semibold text-slate-500 text-center leading-snug">{item.label}</span>
+                                    </button>
+                                )
                             )}
                         </div>
                     </div>
 
-                    <div className="hp-content">
-                        {/* ── Menu Card (floating) ── */}
-                        <div className="hp-menu-card">
-                            <div className="hp-menu-header">
-                                <div className="hp-menu-title">Menu Utama</div>
+                    {/* Quick action banner */}
+                    <div className="px-4 pt-[18px]">
+                        <Link to="/attendance"
+                            className="relative overflow-hidden rounded-[20px] px-5 py-[18px] flex items-center gap-4 no-underline cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(15,23,42,.25)] active:scale-[.98] shadow-[0_8px_24px_rgba(15,23,42,.2)] animate-fade-up"
+                            style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #1D4ED8 100%)' }}>
+                            <div className="absolute -top-5 -right-5 w-[100px] h-[100px] rounded-full"
+                                style={{ background: 'radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%)' }} />
+                            <div className="relative z-[1] w-12 h-12 rounded-[14px] bg-blue-500/15 border border-blue-500/25 grid place-items-center flex-shrink-0">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                                </svg>
                             </div>
-                            <div className="hp-menu-grid">
-                                {MENU_ITEMS.map((item) => (
-                                    item.to ? (
-                                        <Link key={item.key} to={item.to} className="hp-menu-item">
-                                            <div className="hp-menu-icon" style={{ background: item.bg }}>
-                                                {item.icon}
-                                            </div>
-                                            <span className="hp-menu-label">{item.label}</span>
-                                        </Link>
-                                    ) : (
-                                        <button key={item.key} className="hp-menu-item" onClick={() => { }}>
-                                            <div className="hp-menu-icon" style={{ background: item.bg }}>
-                                                {item.icon}
-                                            </div>
-                                            <span className="hp-menu-label">{item.label}</span>
-                                        </button>
-                                    )
-                                ))}
+                            <div className="relative z-[1] flex-1">
+                                <div className="text-[14px] font-extrabold text-white tracking-[-0.2px]">Absen Sekarang</div>
+                                <div className="text-[11.5px] text-white/45 font-medium mt-0.5">Lakukan absensi shift hari ini</div>
+                            </div>
+                            <div className="relative z-[1] w-8 h-8 rounded-[10px] bg-white/8 grid place-items-center text-white/50 flex-shrink-0">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="8,5 13,10 8,15"/>
+                                </svg>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Progress */}
+                    {shiftSummary && (
+                        <div className="px-4 pt-[18px] animate-fade-up">
+                            <div className="bg-white rounded-[16px] p-4 shadow-[0_1px_3px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)]">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-[12px] font-semibold text-slate-500">Progress Hari Ini</span>
+                                    <span className="text-[12px] font-extrabold text-slate-900">{shiftSummary.done} / {shiftSummary.total} shift</span>
+                                </div>
+                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full rounded-full transition-all duration-[600ms]"
+                                        style={{ width: `${(shiftSummary.done / shiftSummary.total) * 100}%`, background: 'linear-gradient(90deg, #3B82F6, #1D4ED8)' }} />
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* ── Calendar Strip ── */}
-                        {/* <div className="hp-cal-section">
-                            <div className="hp-cal-header">
-                                <span className="hp-cal-title">Minggu Ini</span>
-                                <span className="hp-cal-month">{MONTHS_ID[now.getMonth()]} {now.getFullYear()}</span>
-                            </div>
-                            <div className="hp-cal-strip">
-                                {weekDates.map((d, i) => {
-                                    const dateStr = `${d.getFullYear()}-${fmt2(d.getMonth() + 1)}-${fmt2(d.getDate())}`;
-                                    const isToday = dateStr === todayStr;
-                                    const isPast = d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    {/* Shift timeline */}
+                    <div className="px-4 pt-[18px] animate-fade-up">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px]">Absensi Hari Ini</span>
+                            <Link to="/history" className="text-[11.5px] font-semibold text-blue-500 no-underline px-2.5 py-1 rounded-lg transition hover:bg-blue-50">Lihat Semua</Link>
+                        </div>
+
+                        {shiftSummary ? (
+                            <div className="flex flex-col gap-2">
+                                {shiftSummary.keys.map(k => {
+                                    const s = shiftSummary.todayShifts[k];
+                                    const hasPunch = s?.check_in_time;
+                                    const meta = SHIFT_META[k];
+                                    const inTime = hasPunch ? formatShiftTime(s.check_in_time) : null;
+                                    const outTime = s?.check_out_time ? formatShiftTime(s.check_out_time) : null;
                                     return (
-                                        <div key={i} className={`hp-cal-day${isToday ? ' today' : ''}${isPast && !isToday ? ' past' : ''}`}>
-                                            <span className="hp-cal-day-name">{DAYS_ID[d.getDay()]}</span>
-                                            <span className="hp-cal-day-num">{d.getDate()}</span>
+                                        <div key={k} className={`relative overflow-hidden flex items-center gap-3 px-4 py-3.5 bg-white rounded-[16px] border shadow-[0_1px_3px_rgba(0,0,0,.04)] transition ${hasPunch ? 'border-emerald-100' : 'border-transparent'}`}>
+                                            {/* left accent bar */}
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-[4px] ${hasPunch ? 'bg-emerald-400' : 'bg-slate-200'}`} />
+                                            <div className="w-10 h-10 rounded-[12px] grid place-items-center flex-shrink-0 text-[20px]"
+                                                style={{ background: meta.bg }}>{meta.icon}</div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] font-bold text-slate-900">Shift {meta.label}</div>
+                                                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-0.5">
+                                                    {hasPunch ? (
+                                                        <>
+                                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="10" cy="10" r="7"/><polyline points="10,6 10,10 13,12"/></svg>
+                                                            <span className="font-mono text-[10.5px] font-semibold">{inTime}</span>
+                                                            {outTime && <><span className="text-slate-300">→</span><span className="font-mono text-[10.5px] font-semibold">{outTime}</span></>}
+                                                        </>
+                                                    ) : <span>Belum absen</span>}
+                                                </div>
+                                            </div>
+                                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 ${hasPunch ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-400'}`}>
+                                                {hasPunch ? (
+                                                    <><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3,8 6.5,11.5 13,5"/></svg>Hadir</>
+                                                ) : 'Belum'}
+                                            </span>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </div> */}
-
-                        {/* ── Quick Action ── */}
-                        <div className="hp-section">
-                            <Link to="/attendance" className="hp-quick-banner">
-                                <div className="hp-quick-icon">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                        ) : (
+                            <div className="bg-white rounded-[20px] px-5 py-8 text-center shadow-[0_1px_4px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)]">
+                                <div className="w-16 h-16 rounded-[20px] bg-slate-50 grid place-items-center mx-auto mb-3.5">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                        <line x1="9" y1="2" x2="9" y2="6"/>
+                                        <line x1="15" y1="2" x2="15" y2="6"/>
                                     </svg>
                                 </div>
-                                <div className="hp-quick-text">
-                                    <div className="hp-quick-title">Absen Sekarang</div>
-                                    <div className="hp-quick-desc">Lakukan absensi shift hari ini</div>
-                                </div>
-                                <div className="hp-quick-arrow">
-                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="8,5 13,10 8,15" />
-                                    </svg>
-                                </div>
-                            </Link>
-                        </div>
-
-                        {/* ── Attendance Progress ── */}
-                        {shiftSummary && (
-                            <div className="hp-section hp-progress-section">
-                                <div className="hp-progress-card">
-                                    <div className="hp-progress-top">
-                                        <span className="hp-progress-label">Progress Hari Ini</span>
-                                        <span className="hp-progress-count">{shiftSummary.done} / {shiftSummary.total} shift</span>
-                                    </div>
-                                    <div className="hp-progress-bar-bg">
-                                        <div className="hp-progress-bar-fill" style={{ width: `${(shiftSummary.done / shiftSummary.total) * 100}%` }} />
-                                    </div>
-                                </div>
+                                <div className="text-[14px] font-extrabold text-slate-800 mb-1">Belum Ada Absensi</div>
+                                <div className="text-[12px] text-slate-400 font-medium leading-relaxed">Belum ada absensi tercatat hari ini</div>
                             </div>
                         )}
-
-                        {/* ── Absensi Hari Ini ── */}
-                        <div className="hp-section hp-shifts-wrap">
-                            <div className="hp-section-header">
-                                <span className="hp-section-title">Absensi Hari Ini</span>
-                                <Link to="/history" className="hp-section-link">Lihat Semua</Link>
-                            </div>
-
-                            {shiftSummary ? (
-                                <div className="hp-shift-timeline">
-                                    {shiftSummary.keys.map(k => {
-                                        const s = shiftSummary.todayShifts[k];
-                                        const hasPunch = s?.check_in_time;
-                                        const meta = SHIFT_META[k];
-                                        const inTime = hasPunch ? formatShiftTime(s.check_in_time) : null;
-                                        const outTime = s?.check_out_time ? formatShiftTime(s.check_out_time) : null;
-                                        return (
-                                            <div key={k} className={`hp-shift-card ${hasPunch ? 'done' : 'pending'}`}>
-                                                <div className="hp-shift-emoji" style={{ background: meta.bg }}>
-                                                    {meta.icon}
-                                                </div>
-                                                <div className="hp-shift-info">
-                                                    <div className="hp-shift-name">Shift {meta.label}</div>
-                                                    <div className="hp-shift-time">
-                                                        {hasPunch ? (
-                                                            <>
-                                                                <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="10" cy="10" r="7" /><polyline points="10,6 10,10 13,12" /></svg>
-                                                                <span className="hp-shift-time-val">{inTime}</span>
-                                                                {outTime && (
-                                                                    <>
-                                                                        <span style={{ color: '#CBD5E1' }}>→</span>
-                                                                        <span className="hp-shift-time-val">{outTime}</span>
-                                                                    </>
-                                                                )}
-                                                            </>
-                                                        ) : (
-                                                            <span>Belum absen</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <span className={`hp-shift-badge ${hasPunch ? 'done' : 'pending'}`}>
-                                                    {hasPunch ? (
-                                                        <>
-                                                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3,8 6.5,11.5 13,5" /></svg>
-                                                            Hadir
-                                                        </>
-                                                    ) : 'Belum'}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="hp-empty-card">
-                                    <div className="hp-empty-icon">
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="3" y="4" width="18" height="16" rx="2" />
-                                            <line x1="3" y1="10" x2="21" y2="10" />
-                                            <line x1="9" y1="2" x2="9" y2="6" />
-                                            <line x1="15" y1="2" x2="15" y2="6" />
-                                        </svg>
-                                    </div>
-                                    <div className="hp-empty-title">Belum Ada Absensi</div>
-                                    <div className="hp-empty-desc">Belum ada absensi tercatat hari ini</div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div style={{ height: 20 }} />
                     </div>
 
-                    {/* ── Bottom Nav ── */}
-                    <div className="hp-bnav-wrap">
-                        <div className="hp-bnav">
-                            <nav className="hp-bnav-grid">
-                                <Link to="/" className={`hp-bnav-item${routerLocation.pathname === '/' ? ' active' : ''}`}>
-                                    <IconHome /> Beranda
-                                </Link>
-                                <Link to="/history" className={`hp-bnav-item${routerLocation.pathname === '/history' ? ' active' : ''}`}>
-                                    <IconHistory /> Riwayat
-                                </Link>
-                                <Link to="/profile" className={`hp-bnav-item${routerLocation.pathname === '/profile' ? ' active' : ''}`}>
-                                    <IconUser /> Profil
-                                </Link>
-                            </nav>
-                        </div>
-                    </div>
-
+                    <div className="h-5" />
                 </div>
+
+                {/* Bottom nav */}
+                <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
+                    <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
+                        <nav className="grid grid-cols-3 gap-1">
+                            {[{ to: '/', label: 'Beranda', Icon: IconHome }, { to: '/history', label: 'Riwayat', Icon: IconHistory }, { to: '/profile', label: 'Profil', Icon: IconUser }].map(({ to, label, Icon }) => {
+                                const active = isActive(to);
+                                return (
+                                    <Link key={to} to={to}
+                                        className={`relative flex flex-col items-center gap-1 px-2 py-2 pb-1.5 rounded-[14px] no-underline text-[10px] font-semibold tracking-[.02em] transition ${active ? 'text-blue-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
+                                        {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700" />}
+                                        <Icon />
+                                        {label}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </div>
+
             </div>
-        </>
+        </div>
     );
 }

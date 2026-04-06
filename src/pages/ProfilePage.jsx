@@ -57,147 +57,120 @@ export default function ProfilePage() {
     { label: 'Role',             value: p.role },
   ].filter(r => r.value);
 
+  const isActive = (p) => routerLocation.pathname === p;
+
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F1F5F9; -webkit-font-smoothing: antialiased; }
+    <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
+      <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] overflow-hidden">
 
-        .pr-shell { min-height: 100dvh; background: #F1F5F9; display: flex; justify-content: center; }
-        .pr-frame { width: 100%; max-width: 430px; min-height: 100dvh; background: #F8FAFC; display: flex; flex-direction: column; box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 8px 48px rgba(0,0,0,.08); overflow: hidden; }
+        {/* ── Hero ── */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-3 px-5 pt-6 pb-8 rounded-b-[32px] relative overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%)' }}>
+          <div className="absolute -top-[60px] -right-[40px] w-[180px] h-[180px] rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%)' }} />
+          <div className="absolute -bottom-[30px] -left-[30px] w-[120px] h-[120px] rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%)' }} />
 
-        /* Hero */
-        .pr-hero { background: linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%); padding: 24px 20px 32px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; overflow: hidden; border-radius: 0 0 32px 32px; }
-        .pr-hero::before { content: ''; position: absolute; top: -60px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%); border-radius: 50%; }
-        .pr-hero::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%); border-radius: 50%; }
-        .pr-avatar { width: 72px; height: 72px; border-radius: 20px; background: rgba(255,255,255,.15); color: #fff; font-size: 22px; font-weight: 800; display: grid; place-items: center; border: 2.5px solid rgba(255,255,255,.25); box-shadow: 0 8px 24px rgba(0,0,0,.2); backdrop-filter: blur(8px); position: relative; z-index: 1; }
-        .pr-name { font-size: 17px; font-weight: 800; color: #fff; text-align: center; position: relative; z-index: 1; }
-        .pr-code { font-size: 11.5px; color: rgba(255,255,255,.45); font-weight: 500; letter-spacing: .04em; position: relative; z-index: 1; }
-        .pr-role-badge { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.15); border-radius: 100px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.7); position: relative; z-index: 1; }
-
-        /* Content */
-        .pr-content { flex: 1; overflow-y: auto; padding: 14px 13px 110px; display: flex; flex-direction: column; gap: 12px; }
-
-        /* Card */
-        .pr-card { background: #fff; border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03); }
-        .pr-card-title { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: .08em; padding: 12px 16px 0; }
-
-        /* Info row */
-        .pr-row { padding: 11px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid #F8FAFC; }
-        .pr-row:last-child { border-bottom: none; }
-        .pr-row-label { font-size: 11.5px; font-weight: 600; color: #94A3B8; flex-shrink: 0; min-width: 110px; }
-        .pr-row-value { font-size: 12.5px; font-weight: 600; color: #0F172A; text-align: right; word-break: break-word; }
-
-        /* Skeleton */
-        .pr-skeleton { height: 14px; border-radius: 7px; background: #F1F5F9; animation: prShimmer 1.3s ease infinite; }
-        @keyframes prShimmer { 0%,100%{opacity:1} 50%{opacity:.45} }
-
-        /* Logout button */
-        .pr-logout { width: 100%; height: 50px; border-radius: 15px; border: 1.5px solid #FECDD3; background: #FFF1F2; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; font-weight: 700; color: #9F1239; transition: background .14s, border-color .14s; }
-        .pr-logout:hover { background: #FFE4E6; border-color: #FCA5A5; }
-        .pr-logout:active { transform: scale(.98); }
-
-        /* Confirm modal */
-        .pr-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn .15s; }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .pr-modal { background: #fff; border-radius: 24px 24px 0 0; padding: 24px 20px calc(env(safe-area-inset-bottom) + 20px); width: 100%; max-width: 430px; animation: slideUp .22s cubic-bezier(.22,.68,0,1.1); }
-        @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-        .pr-modal-title { font-size: 15px; font-weight: 800; color: #0F172A; text-align: center; margin-bottom: 6px; }
-        .pr-modal-sub { font-size: 12.5px; color: #94A3B8; text-align: center; margin-bottom: 20px; font-weight: 500; }
-        .pr-modal-btns { display: flex; flex-direction: column; gap: 8px; }
-        .pr-modal-confirm { height: 48px; border-radius: 14px; border: none; background: linear-gradient(135deg, #9F1239, #F43F5E); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .pr-modal-cancel  { height: 48px; border-radius: 14px; border: 1.5px solid #E2E8F0; background: #F8FAFC; color: #64748B; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-
-        /* Bottom nav */
-        .pr-bnav-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; pointer-events: none; width: 100%; }
-        .pr-bnav { pointer-events: auto; width: 100%; max-width: 430px; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(226,232,240,.6); padding: 6px 20px calc(env(safe-area-inset-bottom) + 6px); box-shadow: 0 -4px 24px rgba(0,0,0,.06); }
-        .pr-bnav-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: 100%; }
-        .pr-bnav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 8px 6px; border-radius: 14px; text-decoration: none; font-size: 10px; font-weight: 600; letter-spacing: .02em; color: #94A3B8; transition: all .2s ease; position: relative; }
-        .pr-bnav-item:hover { color: #475569; }
-        .pr-bnav-item.active { color: #1D4ED8; }
-        .pr-bnav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: #1D4ED8; border-radius: 0 0 3px 3px; }
-        .pr-bnav-item svg { opacity: .5; transition: opacity .15s; }
-        .pr-bnav-item.active svg { stroke: #1D4ED8; opacity: 1; }
-      `}</style>
-
-      <div className="pr-shell">
-        <div className="pr-frame">
-
-          {/* ── Hero ── */}
-          <div className="pr-hero">
-            <div className="pr-avatar">{initials(name)}</div>
-            <div style={{ textAlign:'center' }}>
-              <div className="pr-name">{name}</div>
-              {p.employee_code && <div className="pr-code">{p.employee_code}</div>}
-            </div>
-            {p.role && <div className="pr-role-badge">{p.role}</div>}
+          <div className="relative z-[1] w-[72px] h-[72px] rounded-[20px] bg-white/15 border-[2.5px] border-white/25 text-white text-[22px] font-extrabold grid place-items-center shadow-[0_8px_24px_rgba(0,0,0,.2)] backdrop-blur-[8px]">
+            {initials(name)}
           </div>
-
-          {/* ── Content ── */}
-          <div className="pr-content">
-
-            {loading
-              ? <div className="pr-card" style={{ padding:16, display:'flex', flexDirection:'column', gap:12 }}>
-                  {[120,80,100,90,110].map((w,i) => (
-                    <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div className="pr-skeleton" style={{ width:90 }} />
-                      <div className="pr-skeleton" style={{ width:w }} />
-                    </div>
-                  ))}
-                </div>
-              : (
-                <div className="pr-card">
-                  <div className="pr-card-title">Informasi Karyawan</div>
-                  {infoRows.map(({ label, value }) => (
-                    <div key={label} className="pr-row">
-                      <div className="pr-row-label">{label}</div>
-                      <div className="pr-row-value">{value}</div>
-                    </div>
-                  ))}
-                </div>
-              )
-            }
-
-            {/* Logout */}
-            <button className="pr-logout" onClick={() => setShowLogout(true)}>
-              <IconLogout /> Keluar dari Akun
-            </button>
-
-            <div style={{ fontSize:11, color:'#CBD5E1', textAlign:'center', fontWeight:500 }}>
-              © {new Date().getFullYear()} Part Of Alora Group Indonesia
-            </div>
+          <div className="relative z-[1] text-center">
+            <div className="text-[17px] font-extrabold text-white">{name}</div>
+            {p.employee_code && <div className="text-[11.5px] text-white/45 font-medium tracking-[.04em] mt-0.5">{p.employee_code}</div>}
           </div>
-
-          {/* ── Bottom nav ── */}
-          <div className="pr-bnav-wrap">
-            <div className="pr-bnav">
-              <nav className="pr-bnav-grid">
-                <Link to="/" className={`pr-bnav-item${routerLocation.pathname === '/' ? ' active' : ''}`}><IconHome /> Beranda</Link>
-                <Link to="/history" className={`pr-bnav-item${routerLocation.pathname === '/history' ? ' active' : ''}`}><IconHistory /> Riwayat</Link>
-                <Link to="/profile" className={`pr-bnav-item${routerLocation.pathname === '/profile' ? ' active' : ''}`}><IconUser /> Profil</Link>
-              </nav>
+          {p.role && (
+            <div className="relative z-[1] bg-white/12 border border-white/15 rounded-full px-3 py-1 text-[11px] font-semibold text-white/70">
+              {p.role}
             </div>
-          </div>
-
+          )}
         </div>
+
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-y-auto px-[13px] pt-[14px] pb-[110px] flex flex-col gap-3">
+
+          {loading
+            ? <div className="bg-white rounded-[20px] p-4 flex flex-col gap-3">
+                {[120, 80, 100, 90, 110].map((w, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="h-[14px] rounded-[7px] bg-slate-100 animate-shimmer" style={{ width: 90 }} />
+                    <div className="h-[14px] rounded-[7px] bg-slate-100 animate-shimmer" style={{ width: w }} />
+                  </div>
+                ))}
+              </div>
+            : (
+              <div className="bg-white rounded-[20px] shadow-[0_1px_4px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)] overflow-hidden">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-[.08em] px-4 pt-3">Informasi Karyawan</div>
+                {infoRows.map(({ label, value }) => (
+                  <div key={label} className="px-4 py-[11px] flex items-start justify-between gap-3 border-b border-slate-50 last:border-b-0">
+                    <div className="text-[11.5px] font-semibold text-slate-400 flex-shrink-0 min-w-[110px]">{label}</div>
+                    <div className="text-[12.5px] font-semibold text-slate-900 text-right break-words">{value}</div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          {/* Logout */}
+          <button
+            className="w-full h-[50px] rounded-[15px] border-[1.5px] border-[#FECDD3] bg-[#FFF1F2] cursor-pointer flex items-center justify-center gap-2 text-[13.5px] font-bold text-[#9F1239] transition hover:bg-[#FFE4E6] hover:border-[#FCA5A5] active:scale-[.98]"
+            onClick={() => setShowLogout(true)}>
+            <IconLogout /> Keluar dari Akun
+          </button>
+
+          <div className="text-[11px] text-slate-300 text-center font-medium">
+            © {new Date().getFullYear()} Part Of Alora Group Indonesia
+          </div>
+        </div>
+
+        {/* ── Bottom nav ── */}
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
+            <nav className="grid grid-cols-3 gap-1">
+              {[
+                { to: '/', label: 'Beranda', Icon: IconHome },
+                { to: '/history', label: 'Riwayat', Icon: IconHistory },
+                { to: '/profile', label: 'Profil', Icon: IconUser },
+              ].map(({ to, label, Icon }) => {
+                const active = isActive(to);
+                return (
+                  <Link key={to} to={to}
+                    className={`relative flex flex-col items-center gap-1 px-2 py-2 pb-1.5 rounded-[14px] no-underline text-[10px] font-semibold tracking-[.02em] transition ${active ? 'text-blue-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
+                    {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700"/>}
+                    <Icon />
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
       </div>
 
       {/* ── Logout confirm modal ── */}
       {showLogout && (
-        <div className="pr-overlay" onClick={() => setShowLogout(false)}>
-          <div className="pr-modal" onClick={e => e.stopPropagation()}>
-            <div className="pr-modal-title">Keluar dari akun?</div>
-            <div className="pr-modal-sub">Anda perlu login kembali untuk mengakses aplikasi.</div>
-            <div className="pr-modal-btns">
-              <button className="pr-modal-confirm" onClick={handleLogout}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center animate-fade-in"
+          onClick={() => setShowLogout(false)}>
+          <div className="bg-white rounded-[24px_24px_0_0] px-5 pt-6 pb-safe-10 w-full max-w-[430px] animate-slide-up"
+            onClick={e => e.stopPropagation()}>
+            <div className="text-[15px] font-extrabold text-slate-900 text-center mb-1.5">Keluar dari akun?</div>
+            <div className="text-[12.5px] text-slate-400 text-center mb-5 font-medium">Anda perlu login kembali untuk mengakses aplikasi.</div>
+            <div className="flex flex-col gap-2">
+              <button
+                className="h-12 rounded-[14px] border-none text-white text-[13.5px] font-bold cursor-pointer flex items-center justify-center gap-2 transition hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #9F1239, #F43F5E)' }}
+                onClick={handleLogout}>
                 <IconLogout /> Ya, Keluar
               </button>
-              <button className="pr-modal-cancel" onClick={() => setShowLogout(false)}>Batal</button>
+              <button
+                className="h-12 rounded-[14px] border-[1.5px] border-slate-200 bg-slate-50 text-slate-500 text-[13.5px] font-semibold cursor-pointer transition hover:bg-slate-100"
+                onClick={() => setShowLogout(false)}>
+                Batal
+              </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -295,473 +295,228 @@ export default function DashboardPage() {
   /* ── Live time ── */
   const liveTime = `${fmt2(now.getHours())}:${fmt2(now.getMinutes())}:${fmt2(now.getSeconds())}`;
 
+  const isActive = (p) => routerLocation.pathname === p;
+
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F1F5F9; -webkit-font-smoothing: antialiased; }
+    <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
+      <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
 
-        @keyframes d-fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes d-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-        @keyframes d-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        {/* ── Hero ── */}
+        <div className="relative overflow-hidden rounded-b-[28px] flex-shrink-0 pb-[22px]"
+          style={{ background: 'linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%)' }}>
+          <div className="absolute -top-[70px] -right-[40px] w-[200px] h-[200px] rounded-full animate-pulse"
+            style={{ background: 'radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%)' }} />
+          <div className="absolute -bottom-[30px] -left-[30px] w-[140px] h-[140px] rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%)' }} />
+          <div className="absolute inset-0 pointer-events-none opacity-[.04]"
+            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
 
-        .d-shell { min-height: 100dvh; background: #F1F5F9; display: flex; justify-content: center; }
-        .d-frame { width: 100%; max-width: 430px; min-height: 100dvh; background: #F8FAFC; display: flex; flex-direction: column; box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 8px 48px rgba(0,0,0,.08); position: relative; overflow: hidden; }
-
-        /* ── Hero ── */
-        .d-hero {
-          background: linear-gradient(160deg, #0F172A 0%, #1E3A5F 35%, #1D4ED8 70%, #3B82F6 100%);
-          padding: 0 0 22px;
-          border-radius: 0 0 28px 28px;
-          position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        .d-hero::before {
-          content: '';
-          position: absolute; top: -70px; right: -40px;
-          width: 200px; height: 200px;
-          background: radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%);
-          border-radius: 50%;
-          animation: d-pulse 4s ease-in-out infinite;
-        }
-        .d-hero::after {
-          content: '';
-          position: absolute; bottom: -30px; left: -30px;
-          width: 140px; height: 140px;
-          background: radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%);
-          border-radius: 50%;
-        }
-        .d-hero-pattern {
-          position: absolute; inset: 0; opacity: .04;
-          background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0);
-          background-size: 24px 24px;
-          pointer-events: none;
-        }
-
-        .d-hero-top {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 18px 0;
-          position: relative; z-index: 1;
-        }
-        .d-hero-user { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        .d-avatar {
-          width: 40px; height: 40px; border-radius: 12px;
-          background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.2);
-          color: #fff; font-size: 13px; font-weight: 800;
-          display: grid; place-items: center; flex-shrink: 0;
-          backdrop-filter: blur(8px);
-        }
-        .d-user-name {
-          font-size: 14px; font-weight: 800; color: #fff;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .d-user-sub {
-          font-size: 10.5px; color: rgba(255,255,255,.5); font-weight: 500;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          margin-top: 1px;
-        }
-        .d-hero-back {
-          width: 36px; height: 36px; border-radius: 11px;
-          background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12);
-          color: #fff; display: grid; place-items: center;
-          cursor: pointer; transition: all .15s;
-          backdrop-filter: blur(8px); flex-shrink: 0;
-          text-decoration: none;
-        }
-        .d-hero-back:hover { background: rgba(255,255,255,.2); }
-
-        /* Clock + Date row inside hero */
-        .d-hero-body {
-          padding: 14px 18px 0;
-          position: relative; z-index: 1;
-          display: flex; align-items: flex-end; justify-content: space-between;
-        }
-        .d-clock {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 26px; font-weight: 700; color: #fff;
-          letter-spacing: -1px; line-height: 1;
-        }
-        .d-clock-date {
-          font-size: 11.5px; color: rgba(255,255,255,.45); font-weight: 500; margin-top: 4px;
-        }
-        .d-hero-pill {
-          font-size: 10px; font-weight: 700; letter-spacing: .03em;
-          padding: 5px 10px; border-radius: 100px;
-          background: rgba(255,255,255,.12); color: rgba(255,255,255,.85);
-          border: 1px solid rgba(255,255,255,.1);
-          white-space: nowrap; flex-shrink: 0;
-          backdrop-filter: blur(6px);
-        }
-
-        /* ── Content ── */
-        .d-content { flex: 1; overflow-y: auto; padding: 14px 14px 110px; display: flex; flex-direction: column; gap: 10px; }
-
-        /* GPS card */
-        .d-gps {
-          border-radius: 18px; padding: 12px 14px;
-          display: flex; align-items: center; gap: 10px;
-          border: 1.5px solid;
-          background: #fff;
-          box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.02);
-          animation: d-fadeUp .4s ease-out both;
-        }
-        .d-gps-icon {
-          width: 38px; height: 38px; border-radius: 12px;
-          display: grid; place-items: center; flex-shrink: 0;
-        }
-        .d-gps-text { font-size: 12.5px; font-weight: 700; }
-        .d-gps-sub { font-size: 10.5px; font-weight: 500; color: #94A3B8; margin-top: 1px; }
-        .d-gps-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .d-gps-dot.pulse { animation: d-pulse 1.8s infinite; }
-        .d-gps-refresh {
-          width: 32px; height: 32px; border-radius: 10px;
-          border: 1.5px solid; background: rgba(255,255,255,.7);
-          cursor: pointer; display: grid; place-items: center;
-          transition: opacity .15s;
-        }
-        .d-gps-refresh:disabled { opacity: .4; cursor: not-allowed; }
-
-        /* Section header */
-        .d-sec-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 4px 0 2px;
-        }
-        .d-sec-title { font-size: 14px; font-weight: 800; color: #0F172A; letter-spacing: -.2px; }
-        .d-sec-count { font-size: 11px; font-weight: 600; color: #94A3B8; }
-
-        /* Shift card — redesigned */
-        .d-shift {
-          background: #fff;
-          border-radius: 20px;
-          overflow: hidden;
-          border: 1.5px solid transparent;
-          box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
-          transition: border-color .2s, box-shadow .2s;
-          animation: d-fadeUp .45s ease-out both;
-        }
-        .d-shift.active-window {
-          box-shadow: 0 4px 16px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
-        }
-        .d-shift-head {
-          padding: 12px 14px 10px;
-          display: flex; align-items: center; gap: 10px;
-        }
-        .d-shift-emoji {
-          font-size: 18px; width: 38px; height: 38px;
-          border-radius: 12px; display: grid; place-items: center; flex-shrink: 0;
-        }
-        .d-shift-info { flex: 1; min-width: 0; }
-        .d-shift-name { font-size: 13.5px; font-weight: 800; }
-        .d-shift-window { font-size: 10.5px; font-weight: 500; color: #94A3B8; margin-top: 1px; }
-        .d-shift-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .d-shift-optional { font-size: 9.5px; font-weight: 600; padding: 3px 8px; border-radius: 100px; background: #F8FAFC; color: #94A3B8; }
-        .d-shift-badge {
-          font-size: 10px; font-weight: 700; letter-spacing: .02em;
-          padding: 4px 10px; border-radius: 100px;
-          display: flex; align-items: center; gap: 4px; white-space: nowrap;
-        }
-        .d-shift-badge.done { background: #ECFDF5; color: #065F46; }
-        .d-shift-badge.active { background: #EFF6FF; color: #1D4ED8; }
-        .d-shift-badge.pending { background: #F8FAFC; color: #CBD5E1; }
-
-        /* Punch row */
-        .d-punch-row {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          padding: 0 14px 14px;
-        }
-        .d-punch-card {
-          border-radius: 14px; padding: 12px;
-          border: 1.5px solid #F1F5F9;
-          background: #FAFBFC;
-          transition: border-color .15s;
-        }
-        .d-punch-card.highlight { border-color: #BFDBFE; background: #F8FAFF; }
-        .d-punch-top {
-          display: flex; align-items: center; gap: 5px;
-          margin-bottom: 8px;
-        }
-        .d-punch-label {
-          font-size: 10px; font-weight: 700; text-transform: uppercase;
-          letter-spacing: .06em; color: #94A3B8;
-        }
-        .d-punch-time {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 20px; font-weight: 700; color: #0F172A;
-          line-height: 1; font-variant-numeric: tabular-nums;
-        }
-        .d-punch-time.empty { color: #E2E8F0; font-weight: 300; }
-        .d-punch-win {
-          font-size: 10px; color: #CBD5E1; font-weight: 500; margin-top: 3px;
-        }
-        .d-punch-msg {
-          margin-top: 6px; font-size: 10.5px; font-weight: 600; line-height: 1.4;
-          padding: 4px 8px; border-radius: 8px;
-        }
-        .d-punch-msg.success { background: #ECFDF5; color: #065F46; }
-        .d-punch-msg.error   { background: #FEF2F2; color: #7F1D1D; }
-
-        .d-punch-btn {
-          margin-top: 8px; width: 100%; height: 34px; border-radius: 10px; border: none;
-          font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11.5px; font-weight: 700;
-          cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
-          transition: opacity .15s, transform .1s;
-        }
-        .d-punch-btn:active:not(:disabled) { transform: scale(.96); }
-        .d-punch-btn:disabled { opacity: .45; cursor: not-allowed; }
-        .d-punch-btn.go { color: #fff; }
-        .d-punch-btn.done { background: #F0FDF4; color: #65A30D; border: 1px solid #BBF7D0; }
-        .d-punch-btn.locked { background: #F8FAFC; color: #CBD5E1; border: 1px solid #F1F5F9; }
-
-        /* Notice card */
-        .d-notice {
-          background: #fff; border-radius: 18px; padding: 14px 16px;
-          display: flex; align-items: flex-start; gap: 12px;
-          box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
-          animation: d-fadeUp .5s ease-out both;
-          animation-delay: .15s;
-        }
-        .d-notice-icon {
-          width: 36px; height: 36px; border-radius: 10px;
-          background: #F8FAFC; display: grid; place-items: center;
-          color: #94A3B8; flex-shrink: 0;
-        }
-        .d-notice-title { font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 2px; }
-        .d-notice-desc { font-size: 11px; color: #94A3B8; line-height: 1.55; font-weight: 500; }
-
-        /* Bottom nav */
-        .d-bnav-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; pointer-events: none; width: 100%; }
-        .d-bnav {
-          pointer-events: auto; width: 100%; max-width: 430px;
-          background: rgba(255,255,255,.92);
-          backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(226,232,240,.6);
-          padding: 6px 20px calc(env(safe-area-inset-bottom) + 6px);
-          box-shadow: 0 -4px 24px rgba(0,0,0,.06);
-        }
-        .d-bnav-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: 100%; }
-        .d-bnav-item {
-          display: flex; flex-direction: column; align-items: center; gap: 4px;
-          padding: 8px 8px 6px; border-radius: 14px;
-          text-decoration: none;
-          font-size: 10px; font-weight: 600; letter-spacing: .02em;
-          color: #94A3B8; transition: all .2s ease; position: relative;
-        }
-        .d-bnav-item:hover { color: #475569; }
-        .d-bnav-item.active { color: #1D4ED8; }
-        .d-bnav-item.active::before {
-          content: '';
-          position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-          width: 20px; height: 3px;
-          background: #1D4ED8; border-radius: 0 0 3px 3px;
-        }
-        .d-bnav-item svg { opacity: .5; transition: opacity .15s; }
-        .d-bnav-item.active svg { stroke: #1D4ED8; opacity: 1; }
-      `}</style>
-
-      <div className="d-shell">
-        <div className="d-frame">
-
-          {/* ── Hero ─────────────────────────────────────────── */}
-          <div className="d-hero">
-            <div className="d-hero-pattern" />
-            <div className="d-hero-top">
-              <div className="d-hero-user">
-                <Link to="/" className="d-hero-back" aria-label="Kembali">
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="12,15 7,10 12,5" />
-                  </svg>
-                </Link>
-                <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                  <div className="d-user-name">{displayName}</div>
-                  <div className="d-user-sub">{role}{empId && ` · ${empId}`}</div>
-                </div>
-              </div>
-              <div className="d-avatar">{initials(displayName)}</div>
-            </div>
-
-            <div className="d-hero-body">
-              <div>
-                <div className="d-clock">{liveTime}</div>
-                <div className="d-clock-date">{formatLiveDate(now)}</div>
-              </div>
-              {activeWindowLabel && <div className="d-hero-pill">{activeWindowLabel}</div>}
-            </div>
-          </div>
-
-          {/* ── Content ──────────────────────────────────────── */}
-          <div className="d-content">
-
-            {/* GPS card */}
-            <div className="d-gps" style={{ borderColor: gps.border }}>
-              <div className="d-gps-icon" style={{ background: gps.bg }}>
-                <IconPin />
-              </div>
-              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                <div className="d-gps-text" style={{ color: gps.color }}>{gps.text}</div>
-                <div className="d-gps-sub">Laundry IKM Pringgondani · maks {MAX_DIST_M}m</div>
-              </div>
-              <button
-                className="d-gps-refresh"
-                onClick={handleGpsRefresh}
-                disabled={gpsRefreshing}
-                style={{ borderColor: gps.border, color: gps.color }}
-                title="Refresh lokasi"
-              >
-                <svg
-                  width="14" height="14" viewBox="0 0 20 20" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ animation: gpsRefreshing ? 'd-spin 1s linear infinite' : 'none' }}
-                >
-                  <path d="M17 10a7 7 0 1 1-1.34-4.09" />
-                  <polyline points="17,3 17,8 12,8" />
+          <div className="relative z-[1] flex items-center justify-between px-[18px] pt-[14px]">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <Link to="/" aria-label="Kembali"
+                className="w-9 h-9 rounded-[11px] bg-white/10 border border-white/12 text-white grid place-items-center flex-shrink-0 transition hover:bg-white/20 no-underline backdrop-blur-xl">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="12,15 7,10 12,5"/>
                 </svg>
-              </button>
-              <div className={`d-gps-dot${gpsRefreshing || gpsState === 'loading' ? ' pulse' : ''}`} style={{ background: gps.dot }} />
-            </div>
-
-            {/* Section header */}
-            <div className="d-sec-header">
-              <div className="d-sec-title">Absensi Shift</div>
-              <div className="d-sec-count">{SHIFTS.length} shift hari ini</div>
-            </div>
-
-            {/* Shift cards */}
-            {SHIFTS.map((shift, idx) => {
-              const rec = shiftData[shift.key] || {};
-              const hasIn = !!rec.check_in_time;
-              const hasOut = !!rec.check_out_time;
-              const winIn = isInWindow(shift, 'in');
-              const winOut = isInWindow(shift, 'out');
-              const loadIn = loadingShift === `${shift.key}-in`;
-              const loadOut = loadingShift === `${shift.key}-out`;
-              const msgIn = msgs[`${shift.key}-in`];
-              const msgOut = msgs[`${shift.key}-out`];
-              const inRange = gpsState === 'ok';
-              const isActiveWin = winIn || winOut;
-
-              const badgeClass = hasOut ? 'done' : hasIn ? 'active' : 'pending';
-              const badgeText = hasOut ? '✓ Selesai' : hasIn ? 'Berjalan' : 'Belum';
-
-              return (
-                <div
-                  key={shift.key}
-                  className={`d-shift${isActiveWin ? ' active-window' : ''}`}
-                  style={{ borderColor: isActiveWin ? shift.accent : 'transparent', animationDelay: `${idx * .05}s` }}
-                >
-                  {/* Header */}
-                  <div className="d-shift-head">
-                    <div className="d-shift-emoji" style={{ background: shift.iconBg }}>
-                      {shift.key === 'pagi' && '🌅'}
-                      {shift.key === 'siang' && '☀️'}
-                      {shift.key === 'sore' && '🌆'}
-                      {shift.key === 'lembur' && '🌙'}
-                    </div>
-                    <div className="d-shift-info">
-                      <div className="d-shift-name" style={{ color: shift.text }}>Shift {shift.label}</div>
-                      <div className="d-shift-window">{shift.inLabel} / {shift.outLabel}</div>
-                    </div>
-                    <div className="d-shift-right">
-                      {shift.optional && <span className="d-shift-optional">Opsional</span>}
-                      <span className={`d-shift-badge ${badgeClass}`}>{badgeText}</span>
-                    </div>
-                  </div>
-
-                  {/* Punch cards */}
-                  <div className="d-punch-row">
-                    {/* Masuk */}
-                    <div className={`d-punch-card${winIn ? ' highlight' : ''}`}>
-                      <div className="d-punch-top">
-                        <IconIn />
-                        <span className="d-punch-label">Masuk</span>
-                      </div>
-                      <div className={`d-punch-time${!hasIn ? ' empty' : ''}`}>
-                        {hasIn ? formatTime(rec.check_in_time) : '--:--'}
-                      </div>
-                      <div className="d-punch-win">{shift.inLabel}</div>
-
-                      {msgIn && <div className={`d-punch-msg ${msgIn.type}`}>{msgIn.text}</div>}
-
-                      {hasIn
-                        ? <button className="d-punch-btn done" disabled><IconCheck /> Tercatat</button>
-                        : winIn
-                          ? <button
-                              className="d-punch-btn go"
-                              style={{ background: inRange ? shift.accent : '#CBD5E1' }}
-                              onClick={() => inRange && handlePunch(shift.key, 'in')}
-                              disabled={loadIn || !inRange}
-                            >
-                              {loadIn ? 'Simpan…' : inRange ? 'Masuk' : 'Diluar'}
-                            </button>
-                          : <button className="d-punch-btn locked" disabled>Masuk</button>
-                      }
-                    </div>
-
-                    {/* Keluar */}
-                    <div className={`d-punch-card${winOut ? ' highlight' : ''}`}>
-                      <div className="d-punch-top">
-                        <IconOut />
-                        <span className="d-punch-label">Keluar</span>
-                      </div>
-                      <div className={`d-punch-time${!hasOut ? ' empty' : ''}`}>
-                        {hasOut ? formatTime(rec.check_out_time) : '--:--'}
-                      </div>
-                      <div className="d-punch-win">{shift.outLabel}</div>
-
-                      {msgOut && <div className={`d-punch-msg ${msgOut.type}`}>{msgOut.text}</div>}
-
-                      {hasOut
-                        ? <button className="d-punch-btn done" disabled><IconCheck /> Tercatat</button>
-                        : winOut
-                          ? <button
-                              className="d-punch-btn go"
-                              style={{ background: inRange && hasIn ? shift.accent : '#CBD5E1' }}
-                              onClick={() => inRange && hasIn && handlePunch(shift.key, 'out')}
-                              disabled={loadOut || !inRange || !hasIn}
-                            >
-                              {loadOut ? 'Simpan…' : !hasIn ? 'Belum Masuk' : inRange ? 'Keluar' : 'Diluar'}
-                            </button>
-                          : <button className="d-punch-btn locked" disabled>Keluar</button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Notice */}
-            <div className="d-notice">
-              <div className="d-notice-icon"><IconShield /></div>
-              <div>
-                <div className="d-notice-title">Wajib di area kerja</div>
-                <div className="d-notice-desc">
-                  Absensi hanya bisa dilakukan dalam radius {MAX_DIST_M}m dari lokasi kantor.
-                  Pastikan GPS aktif dan sinyal stabil.
-                </div>
+              </Link>
+              <div className="min-w-0 overflow-hidden">
+                <div className="text-[14px] font-extrabold text-white truncate">{displayName}</div>
+                <div className="text-[10.5px] text-white/50 font-medium truncate mt-px">{role}{empId && ` · ${empId}`}</div>
               </div>
             </div>
-
+            <div className="w-10 h-10 rounded-[12px] bg-white/15 border-2 border-white/20 text-white text-[13px] font-extrabold grid place-items-center flex-shrink-0 backdrop-blur-xl">
+              {initials(displayName)}
+            </div>
           </div>
 
-          {/* ── Bottom nav ────────────────────────────────────── */}
-          <div className="d-bnav-wrap">
-            <div className="d-bnav">
-              <nav className="d-bnav-grid">
-                <Link to="/" className="d-bnav-item">
-                  <IconHome /> Beranda
-                </Link>
-                <Link to="/history" className={`d-bnav-item${routerLocation.pathname === '/history' ? ' active' : ''}`}>
-                  <IconHistory /> Riwayat
-                </Link>
-                <Link to="/profile" className={`d-bnav-item${routerLocation.pathname === '/profile' ? ' active' : ''}`}>
-                  <IconUser /> Profil
-                </Link>
-              </nav>
+          <div className="relative z-[1] flex items-end justify-between px-[18px] pt-[14px]">
+            <div>
+              <div className="font-mono text-[26px] font-bold text-white tracking-[-1px] leading-none">{liveTime}</div>
+              <div className="text-[11.5px] text-white/45 font-medium mt-1">{formatLiveDate(now)}</div>
+            </div>
+            {activeWindowLabel && (
+              <div className="text-[10px] font-bold tracking-[.03em] px-2.5 py-[5px] rounded-full bg-white/12 text-white/85 border border-white/10 whitespace-nowrap flex-shrink-0 backdrop-blur-md">
+                {activeWindowLabel}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-y-auto px-[14px] pt-[14px] pb-[110px] flex flex-col gap-2.5">
+
+          {/* GPS card */}
+          <div className="rounded-[18px] px-[14px] py-3 flex items-center gap-2.5 border-[1.5px] bg-white shadow-[0_1px_4px_rgba(0,0,0,.04)] animate-fade-up"
+            style={{ borderColor: gps.border }}>
+            <div className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-shrink-0"
+              style={{ background: gps.bg }}>
+              <IconPin />
+            </div>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="text-[12.5px] font-bold" style={{ color: gps.color }}>{gps.text}</div>
+              <div className="text-[10.5px] font-medium text-slate-400 mt-px">Laundry IKM Pringgondani · maks {MAX_DIST_M}m</div>
+            </div>
+            <button
+              className="w-8 h-8 rounded-[10px] border-[1.5px] bg-white/70 grid place-items-center cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleGpsRefresh} disabled={gpsRefreshing}
+              style={{ borderColor: gps.border, color: gps.color }} title="Refresh lokasi">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ animation: gpsRefreshing ? 'spin 1s linear infinite' : 'none' }}>
+                <path d="M17 10a7 7 0 1 1-1.34-4.09"/><polyline points="17,3 17,8 12,8"/>
+              </svg>
+            </button>
+            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${gpsRefreshing || gpsState === 'loading' ? 'animate-pulse' : ''}`}
+              style={{ background: gps.dot }} />
+          </div>
+
+          {/* Section header */}
+          <div className="flex items-center justify-between py-1">
+            <div className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px]">Absensi Shift</div>
+            <div className="text-[11px] font-semibold text-slate-400">{SHIFTS.length} shift hari ini</div>
+          </div>
+
+          {/* Shift cards */}
+          {SHIFTS.map((shift, idx) => {
+            const rec = shiftData[shift.key] || {};
+            const hasIn = !!rec.check_in_time;
+            const hasOut = !!rec.check_out_time;
+            const winIn = isInWindow(shift, 'in');
+            const winOut = isInWindow(shift, 'out');
+            const loadIn = loadingShift === `${shift.key}-in`;
+            const loadOut = loadingShift === `${shift.key}-out`;
+            const msgIn = msgs[`${shift.key}-in`];
+            const msgOut = msgs[`${shift.key}-out`];
+            const inRange = gpsState === 'ok';
+            const isActiveWin = winIn || winOut;
+
+            const badgeStyle = hasOut
+              ? 'bg-emerald-50 text-emerald-800'
+              : hasIn
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-slate-50 text-slate-300';
+            const badgeText = hasOut ? '✓ Selesai' : hasIn ? 'Berjalan' : 'Belum';
+
+            return (
+              <div key={shift.key}
+                className={`bg-white rounded-[20px] overflow-hidden border-[1.5px] shadow-[0_1px_4px_rgba(0,0,0,.04)] transition-[border-color,box-shadow] animate-fade-up ${isActiveWin ? 'shadow-[0_4px_16px_rgba(0,0,0,.08)]' : ''}`}
+                style={{ borderColor: isActiveWin ? shift.accent : 'transparent', animationDelay: `${idx * .05}s` }}>
+
+                {/* Header */}
+                <div className="px-[14px] pt-3 pb-2.5 flex items-center gap-2.5">
+                  <div className="text-[18px] w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-shrink-0"
+                    style={{ background: shift.iconBg }}>
+                    {shift.key === 'pagi' && '🌅'}
+                    {shift.key === 'siang' && '☀️'}
+                    {shift.key === 'sore' && '🌆'}
+                    {shift.key === 'lembur' && '🌙'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13.5px] font-extrabold" style={{ color: shift.text }}>Shift {shift.label}</div>
+                    <div className="text-[10.5px] font-medium text-slate-400 mt-px">{shift.inLabel} / {shift.outLabel}</div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {shift.optional && <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-slate-50 text-slate-400">Opsional</span>}
+                    <span className={`text-[10px] font-bold tracking-[.02em] px-2.5 py-1 rounded-full whitespace-nowrap ${badgeStyle}`}>{badgeText}</span>
+                  </div>
+                </div>
+
+                {/* Punch row */}
+                <div className="grid grid-cols-2 gap-2 px-[14px] pb-[14px]">
+                  {/* Masuk */}
+                  <div className={`rounded-[14px] p-3 border-[1.5px] transition-[border-color] ${winIn ? 'border-blue-200 bg-[#F8FAFF]' : 'border-slate-100 bg-[#FAFBFC]'}`}>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <IconIn />
+                      <span className="text-[10px] font-bold uppercase tracking-[.06em] text-slate-400">Masuk</span>
+                    </div>
+                    <div className={`font-mono text-[20px] font-bold leading-none tabular-nums ${!hasIn ? 'text-slate-200 font-light' : 'text-slate-900'}`}>
+                      {hasIn ? formatTime(rec.check_in_time) : '--:--'}
+                    </div>
+                    <div className="text-[10px] text-slate-300 font-medium mt-0.5">{shift.inLabel}</div>
+                    {msgIn && <div className={`mt-1.5 text-[10.5px] font-semibold leading-snug px-2 py-1 rounded-lg ${msgIn.type === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-900'}`}>{msgIn.text}</div>}
+                    <div className="mt-2">
+                      {hasIn
+                        ? <button className="w-full h-[34px] rounded-[10px] bg-green-50 text-green-700 border border-green-200 text-[11.5px] font-bold flex items-center justify-center gap-1.5" disabled><IconCheck /> Tercatat</button>
+                        : winIn
+                        ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{ background: inRange ? shift.accent : '#CBD5E1' }}
+                            onClick={() => inRange && handlePunch(shift.key, 'in')}
+                            disabled={loadIn || !inRange}>
+                            {loadIn ? 'Simpan…' : inRange ? 'Masuk' : 'Diluar'}
+                          </button>
+                        : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Masuk</button>
+                      }
+                    </div>
+                  </div>
+
+                  {/* Keluar */}
+                  <div className={`rounded-[14px] p-3 border-[1.5px] transition-[border-color] ${winOut ? 'border-blue-200 bg-[#F8FAFF]' : 'border-slate-100 bg-[#FAFBFC]'}`}>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <IconOut />
+                      <span className="text-[10px] font-bold uppercase tracking-[.06em] text-slate-400">Keluar</span>
+                    </div>
+                    <div className={`font-mono text-[20px] font-bold leading-none tabular-nums ${!hasOut ? 'text-slate-200 font-light' : 'text-slate-900'}`}>
+                      {hasOut ? formatTime(rec.check_out_time) : '--:--'}
+                    </div>
+                    <div className="text-[10px] text-slate-300 font-medium mt-0.5">{shift.outLabel}</div>
+                    {msgOut && <div className={`mt-1.5 text-[10.5px] font-semibold leading-snug px-2 py-1 rounded-lg ${msgOut.type === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-900'}`}>{msgOut.text}</div>}
+                    <div className="mt-2">
+                      {hasOut
+                        ? <button className="w-full h-[34px] rounded-[10px] bg-green-50 text-green-700 border border-green-200 text-[11.5px] font-bold flex items-center justify-center gap-1.5" disabled><IconCheck /> Tercatat</button>
+                        : winOut
+                        ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{ background: inRange && hasIn ? shift.accent : '#CBD5E1' }}
+                            onClick={() => inRange && hasIn && handlePunch(shift.key, 'out')}
+                            disabled={loadOut || !inRange || !hasIn}>
+                            {loadOut ? 'Simpan…' : !hasIn ? 'Belum Masuk' : inRange ? 'Keluar' : 'Diluar'}
+                          </button>
+                        : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Keluar</button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Notice */}
+          <div className="bg-white rounded-[18px] px-4 py-[14px] flex items-start gap-3 shadow-[0_1px_3px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)] animate-fade-up">
+            <div className="w-9 h-9 rounded-[10px] bg-slate-50 grid place-items-center text-slate-400 flex-shrink-0">
+              <IconShield />
+            </div>
+            <div>
+              <div className="text-[12.5px] font-bold text-slate-600 mb-0.5">Wajib di area kerja</div>
+              <div className="text-[11px] text-slate-400 leading-[1.55] font-medium">
+                Absensi hanya bisa dilakukan dalam radius {MAX_DIST_M}m dari lokasi kantor. Pastikan GPS aktif dan sinyal stabil.
+              </div>
             </div>
           </div>
 
         </div>
+
+        {/* ── Bottom nav ── */}
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
+            <nav className="grid grid-cols-3 gap-1">
+              {[
+                { to: '/', label: 'Beranda', Icon: IconHome },
+                { to: '/history', label: 'Riwayat', Icon: IconHistory },
+                { to: '/profile', label: 'Profil', Icon: IconUser },
+              ].map(({ to, label, Icon }) => {
+                const active = isActive(to);
+                return (
+                  <Link key={to} to={to}
+                    className={`relative flex flex-col items-center gap-1 px-2 py-2 pb-1.5 rounded-[14px] no-underline text-[10px] font-semibold tracking-[.02em] transition ${active ? 'text-blue-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
+                    {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700"/>}
+                    <Icon />
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }

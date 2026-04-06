@@ -171,293 +171,213 @@ export default function HistoryPage() {
 
   const displayName = titleCase(authUser?.full_name || authUser?.name || 'User');
 
+  const isActive = (p) => routerLocation.pathname === p;
+
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #F1F5F9; -webkit-font-smoothing: antialiased; }
+    <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
+      <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.05),0_8px_48px_rgba(0,0,0,.08)]">
 
-        .h-shell { min-height: 100dvh; background: #F1F5F9; display: flex; justify-content: center; }
-        .h-frame { width: 100%; max-width: 430px; min-height: 100dvh; background: #F8FAFC; display: flex; flex-direction: column; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 48px rgba(0,0,0,.08); }
+        {/* ── Header ── */}
+        <div className="flex-shrink-0 px-4 pt-[14px] pb-4"
+          style={{ background: 'linear-gradient(135deg, #0B1739 0%, #1A336E 100%)' }}>
 
-        .h-header { background: linear-gradient(135deg, #0B1739 0%, #1A336E 100%); padding: 14px 16px 16px; flex-shrink: 0; }
-        .h-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-        .h-header-title { font-size: 16px; font-weight: 800; color: #fff; }
-        .h-header-sub { font-size: 11px; color: rgba(255,255,255,.45); font-weight: 500; margin-top: 1px; }
-
-        /* Streak badge */
-        .h-streak { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); border-radius: 100px; padding: 4px 10px; }
-        .h-streak-num { font-size: 13px; font-weight: 800; color: #FCD34D; }
-        .h-streak-label { font-size: 10.5px; color: rgba(255,255,255,.5); font-weight: 500; }
-
-        /* Nav in header */
-        .h-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .h-nav-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: rgba(255,255,255,.6); display: grid; place-items: center; cursor: pointer; transition: background .13s; }
-        .h-nav-btn:hover { background: rgba(255,255,255,.14); }
-        .h-month-label { font-size: 14px; font-weight: 700; color: #fff; }
-        .h-year-label  { font-size: 11px; color: rgba(255,255,255,.4); text-align: center; }
-
-        /* Stats grid */
-        .h-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
-        .h-stat { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 8px 6px; text-align: center; }
-        .h-stat-num { font-size: 17px; font-weight: 800; color: #fff; line-height: 1; }
-        .h-stat-num.green  { color: #6EE7B7; }
-        .h-stat-num.yellow { color: #FCD34D; }
-        .h-stat-num.blue   { color: #93C5FD; font-size: 13px; }
-        .h-stat-label { font-size: 9px; color: rgba(255,255,255,.35); margin-top: 3px; font-weight: 500; letter-spacing: .04em; }
-
-        /* Content */
-        .h-content { flex: 1; overflow-y: auto; padding: 12px 13px 110px; display: flex; flex-direction: column; gap: 10px; }
-
-        /* Legend */
-        .h-legend { display: flex; align-items: center; gap: 12px; padding: 2px; }
-        .h-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #64748B; font-weight: 500; }
-        .h-legend-dot { width: 7px; height: 7px; border-radius: 50%; }
-
-        /* Detail expanded card */
-        .h-detail { background: #fff; border-radius: 18px; border: 1.5px solid #E2E8F0; overflow: hidden; animation: slideDown .2s cubic-bezier(.22,.68,0,1.1); }
-        @keyframes slideDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-        .h-detail-head { padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #F1F5F9; }
-        .h-detail-date { font-size: 12.5px; font-weight: 700; color: #0F172A; }
-
-        /* Shift rows inside detail */
-        .h-shift-row { padding: 10px 14px; border-bottom: 1px solid #F8FAFC; display: flex; align-items: center; gap: 10px; }
-        .h-shift-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .h-shift-name { font-size: 11.5px; font-weight: 700; flex: 1; }
-        .h-shift-times { display: flex; align-items: center; gap: 6px; }
-        .h-time-chip { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: #0F172A; font-family: 'JetBrains Mono', monospace; }
-        .h-time-sep { color: #CBD5E1; font-size: 12px; }
-        .h-dur-chip { font-size: 10px; font-weight: 600; background: #EFF6FF; color: #1D4ED8; border-radius: 6px; padding: 2px 6px; border: 1px solid #BFDBFE; font-family: 'JetBrains Mono', monospace; }
-        .h-no-att { padding: 12px 14px; font-size: 12px; color: #94A3B8; text-align: center; }
-
-        /* Badge */
-        .h-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 3px 9px; border-radius: 100px; }
-        .h-badge-full    { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
-        .h-badge-partial { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
-        .h-badge-absent  { background: #F8FAFC; color: #94A3B8; border: 1px solid #E2E8F0; }
-
-        /* Section header */
-        .h-sec { font-size: 12.5px; font-weight: 700; color: #0F172A; padding: 2px 0; }
-
-        /* Record card */
-        .h-rec { background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; transition: box-shadow .14s; }
-        .h-rec:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
-        .h-rec-top { padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #F1F5F9; }
-        .h-rec-date-num { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1; letter-spacing: -.04em; width: 34px; flex-shrink: 0; }
-        .h-rec-day { font-size: 12px; font-weight: 600; color: #0F172A; }
-        .h-rec-month { font-size: 10.5px; color: #64748B; margin-top: 1px; }
-        .h-rec-shifts { padding: 6px 0; }
-        .h-rec-shift-row { padding: 6px 13px; display: flex; align-items: center; gap: 8px; }
-        .h-rec-shift-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .h-rec-shift-label { font-size: 10.5px; font-weight: 600; width: 42px; flex-shrink: 0; }
-        .h-rec-times-row { display: flex; align-items: center; gap: 8px; flex: 1; }
-        .h-rec-time { font-size: 11.5px; font-weight: 600; color: #0F172A; font-family: 'JetBrains Mono', monospace; }
-        .h-rec-time.empty { color: #E2E8F0; }
-        .h-rec-arrow { color: #CBD5E1; font-size: 11px; }
-        .h-rec-dur { font-size: 10px; font-weight: 600; background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; border-radius: 6px; padding: 2px 6px; font-family: 'JetBrains Mono', monospace; }
-
-        /* Empty */
-        .h-empty { background: #fff; border-radius: 18px; border: 1px solid #E2E8F0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-        .h-empty-title { font-size: 13px; font-weight: 600; color: #334155; }
-        .h-empty-sub   { font-size: 11.5px; color: #94A3B8; }
-
-        @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:.45} }
-        .h-loading { animation: shimmer 1.3s ease infinite; }
-
-        /* Bottom nav */
-        .h-bnav-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; pointer-events: none; width: 100%; }
-        .h-bnav { pointer-events: auto; width: 100%; max-width: 430px; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(226,232,240,.6); padding: 6px 20px calc(env(safe-area-inset-bottom) + 6px); box-shadow: 0 -4px 24px rgba(0,0,0,.06); }
-        .h-bnav-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: 100%; }
-        .h-bnav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 8px 6px; border-radius: 14px; text-decoration: none; font-size: 10px; font-weight: 600; letter-spacing: .02em; color: #94A3B8; transition: all .2s ease; position: relative; }
-        .h-bnav-item:hover { color: #475569; }
-        .h-bnav-item.active { color: #1D4ED8; }
-        .h-bnav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: #1D4ED8; border-radius: 0 0 3px 3px; }
-        .h-bnav-item svg { opacity: .5; transition: opacity .15s; }
-        .h-bnav-item.active svg { stroke: #1D4ED8; opacity: 1; }
-      `}</style>
-
-      <div className="h-shell">
-        <div className="h-frame">
-
-          {/* ── Header ── */}
-          <div className="h-header">
-            <div className="h-header-top">
-              <div>
-                <div className="h-header-title">Riwayat Absensi</div>
-                <div className="h-header-sub">{displayName}</div>
-              </div>
-              {streak > 0 && (
-                <div className="h-streak">
-                  <IconFire />
-                  <span className="h-streak-num">{streak}</span>
-                  <span className="h-streak-label">hari berturut</span>
-                </div>
-              )}
+          {/* Top row */}
+          <div className="flex items-center justify-between mb-[14px]">
+            <div>
+              <div className="text-[16px] font-extrabold text-white">Riwayat Absensi</div>
+              <div className="text-[11px] text-white/45 font-medium mt-px">{displayName}</div>
             </div>
-
-            {/* Stats */}
-            <div className="h-stats">
-              <div className="h-stat">
-                <div className="h-stat-num">{monthStats.total}</div>
-                <div className="h-stat-label">TOTAL HARI</div>
-              </div>
-              <div className="h-stat">
-                <div className="h-stat-num green">{monthStats.full}</div>
-                <div className="h-stat-label">LENGKAP</div>
-              </div>
-              <div className="h-stat">
-                <div className="h-stat-num yellow">{monthStats.partial}</div>
-                <div className="h-stat-label">SEBAGIAN</div>
-              </div>
-              <div className="h-stat">
-                <div className="h-stat-num blue">{monthStats.totalTime}</div>
-                <div className="h-stat-label">TTL JAM</div>
-              </div>
-            </div>
-
-            {/* Nav */}
-            <div className="h-cal-nav">
-              <button className="h-nav-btn" onClick={prevMonth}><IconChevL /></button>
-              <div style={{ textAlign:'center' }}>
-                <div className="h-month-label">{MONTHS_ID[viewMonth]}</div>
-                <div className="h-year-label">{viewYear}</div>
-              </div>
-              <button className="h-nav-btn" onClick={nextMonth}><IconChevR /></button>
-            </div>
-
-            {/* Calendar */}
-            {loading
-              ? <div style={{ height:100, display:'grid', placeItems:'center' }}>
-                  <div style={{ fontSize:12, color:'rgba(255,255,255,.3)', fontWeight:500 }} className="h-loading">Memuat data…</div>
-                </div>
-              : <MonthCalendar year={viewYear} month={viewMonth} attendanceMap={attendanceMap} selectedDate={selected} onSelectDate={setSelected} />
-            }
-          </div>
-
-          {/* ── Content ── */}
-          <div className="h-content">
-
-            {/* Legend */}
-            <div className="h-legend">
-              <div className="h-legend-item"><div className="h-legend-dot" style={{ background:'#6EE7B7' }} /> Lengkap</div>
-              <div className="h-legend-item"><div className="h-legend-dot" style={{ background:'#FCD34D' }} /> Sebagian</div>
-            </div>
-
-            {/* Selected detail */}
-            {selected && (
-              <div className="h-detail">
-                <div className="h-detail-head">
-                  <div className="h-detail-date">{fmtDateLong(selected)}</div>
-                  {selectedRecord
-                    ? <span className={`h-badge ${selectedRecord.check_in_time && selectedRecord.check_out_time ? 'h-badge-full' : selectedRecord.check_in_time ? 'h-badge-partial' : 'h-badge-absent'}`}>
-                        {selectedRecord.check_in_time && selectedRecord.check_out_time ? '✓ Lengkap' : selectedRecord.check_in_time ? 'Sebagian' : 'Tidak Hadir'}
-                      </span>
-                    : <span className="h-badge h-badge-absent">Tidak Hadir</span>
-                  }
-                </div>
-                {selectedRecord
-                  ? Object.entries(SHIFT_COLORS).map(([key, sc]) => {
-                      const inTime  = selectedRecord[`${key}_in`];
-                      const outTime = selectedRecord[`${key}_out`];
-                      const dur = calcDuration(inTime, outTime);
-                      return (
-                        <div key={key} className="h-shift-row" style={{ background: sc.bg, borderBottom: `1px solid ${sc.border}` }}>
-                          <div className="h-shift-dot" style={{ background: sc.dot }} />
-                          <div className="h-shift-name" style={{ color: sc.text }}>Shift {sc.label}</div>
-                          <div className="h-shift-times">
-                            <div className="h-time-chip"><IconIn /> {fmtTime(inTime) || '–'}</div>
-                            <span className="h-time-sep">→</span>
-                            <div className="h-time-chip"><IconOut /> {fmtTime(outTime) || '–'}</div>
-                            {dur && <div className="h-dur-chip">{dur}</div>}
-                          </div>
-                        </div>
-                      );
-                    })
-                  : <div className="h-no-att">Tidak ada data absensi untuk tanggal ini.</div>
-                }
+            {streak > 0 && (
+              <div className="flex items-center gap-[5px] bg-white/10 border border-white/15 rounded-full px-2.5 py-1">
+                <IconFire />
+                <span className="text-[13px] font-extrabold text-[#FCD34D]">{streak}</span>
+                <span className="text-[10.5px] text-white/50 font-medium">hari berturut</span>
               </div>
             )}
+          </div>
 
-            {/* Month list */}
-            {!loading && monthRecords.length > 0 && (
-              <>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 2px' }}>
-                  <span className="h-sec">Rekap {MONTHS_ID[viewMonth]}</span>
-                  <span style={{ fontSize:10.5, color:'#94A3B8', background:'#F1F5F9', border:'1px solid #E2E8F0', borderRadius:100, padding:'2px 10px', fontWeight:500 }}>
-                    {monthRecords.length} hari
-                  </span>
-                </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-                  {monthRecords.map(item => {
-                    const dateKey = isoDate(item.attendance_date);
-                    const d = dateKey ? new Date(dateKey + 'T00:00:00') : null;
-                    const isComplete = item.check_in_time && item.check_out_time;
-                    const isPartial  = item.check_in_time && !item.check_out_time;
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-1.5 mb-[14px]">
+            <div className="bg-white/[.07] border border-white/[.09] rounded-[12px] py-2 px-1.5 text-center">
+              <div className="text-[17px] font-extrabold text-white leading-none">{monthStats.total}</div>
+              <div className="text-[9px] text-white/35 font-medium mt-1 tracking-[.04em]">TOTAL HARI</div>
+            </div>
+            <div className="bg-white/[.07] border border-white/[.09] rounded-[12px] py-2 px-1.5 text-center">
+              <div className="text-[17px] font-extrabold text-[#6EE7B7] leading-none">{monthStats.full}</div>
+              <div className="text-[9px] text-white/35 font-medium mt-1 tracking-[.04em]">LENGKAP</div>
+            </div>
+            <div className="bg-white/[.07] border border-white/[.09] rounded-[12px] py-2 px-1.5 text-center">
+              <div className="text-[17px] font-extrabold text-[#FCD34D] leading-none">{monthStats.partial}</div>
+              <div className="text-[9px] text-white/35 font-medium mt-1 tracking-[.04em]">SEBAGIAN</div>
+            </div>
+            <div className="bg-white/[.07] border border-white/[.09] rounded-[12px] py-2 px-1.5 text-center">
+              <div className="text-[13px] font-extrabold text-[#93C5FD] leading-none">{monthStats.totalTime}</div>
+              <div className="text-[9px] text-white/35 font-medium mt-1 tracking-[.04em]">TTL JAM</div>
+            </div>
+          </div>
+
+          {/* Month nav */}
+          <div className="flex items-center justify-between mb-3">
+            <button className="w-[30px] h-[30px] rounded-[8px] border border-white/10 bg-white/[.06] text-white/60 grid place-items-center cursor-pointer transition hover:bg-white/[.14]"
+              onClick={prevMonth}><IconChevL /></button>
+            <div className="text-center">
+              <div className="text-[14px] font-bold text-white">{MONTHS_ID[viewMonth]}</div>
+              <div className="text-[11px] text-white/40">{viewYear}</div>
+            </div>
+            <button className="w-[30px] h-[30px] rounded-[8px] border border-white/10 bg-white/[.06] text-white/60 grid place-items-center cursor-pointer transition hover:bg-white/[.14]"
+              onClick={nextMonth}><IconChevR /></button>
+          </div>
+
+          {/* Calendar */}
+          {loading
+            ? <div className="h-[100px] grid place-items-center">
+                <div className="text-[12px] text-white/30 font-medium animate-shimmer">Memuat data…</div>
+              </div>
+            : <MonthCalendar year={viewYear} month={viewMonth} attendanceMap={attendanceMap} selectedDate={selected} onSelectDate={setSelected} />
+          }
+        </div>
+
+        {/* ── Content ── */}
+        <div className="flex-1 overflow-y-auto px-[13px] pt-3 pb-[110px] flex flex-col gap-2.5">
+
+          {/* Legend */}
+          <div className="flex items-center gap-3 py-0.5">
+            <div className="flex items-center gap-[5px] text-[10.5px] text-slate-500 font-medium">
+              <span className="w-[7px] h-[7px] rounded-full bg-[#6EE7B7] flex-shrink-0" /> Lengkap
+            </div>
+            <div className="flex items-center gap-[5px] text-[10.5px] text-slate-500 font-medium">
+              <span className="w-[7px] h-[7px] rounded-full bg-[#FCD34D] flex-shrink-0" /> Sebagian
+            </div>
+          </div>
+
+          {/* Selected detail */}
+          {selected && (
+            <div className="bg-white rounded-[18px] border-[1.5px] border-slate-200 overflow-hidden animate-slide-up">
+              <div className="px-[14px] py-[11px] flex items-center justify-between border-b border-slate-50">
+                <div className="text-[12.5px] font-bold text-slate-900">{fmtDateLong(selected)}</div>
+                {selectedRecord
+                  ? <span className={`inline-block text-[10px] font-bold tracking-[.04em] px-[9px] py-[3px] rounded-full border ${selectedRecord.check_in_time && selectedRecord.check_out_time ? 'bg-emerald-50 text-[#065F46] border-[#A7F3D0]' : selectedRecord.check_in_time ? 'bg-amber-50 text-[#92400E] border-[#FDE68A]' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                      {selectedRecord.check_in_time && selectedRecord.check_out_time ? '✓ Lengkap' : selectedRecord.check_in_time ? 'Sebagian' : 'Tidak Hadir'}
+                    </span>
+                  : <span className="inline-block text-[10px] font-bold tracking-[.04em] px-[9px] py-[3px] rounded-full bg-slate-50 text-slate-400 border border-slate-200">Tidak Hadir</span>
+                }
+              </div>
+              {selectedRecord
+                ? Object.entries(SHIFT_COLORS).map(([key, sc]) => {
+                    const inTime  = selectedRecord[`${key}_in`];
+                    const outTime = selectedRecord[`${key}_out`];
+                    const dur = calcDuration(inTime, outTime);
                     return (
-                      <div key={item.attendance_date} className="h-rec">
-                        <div className="h-rec-top">
-                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <div className="h-rec-date-num">{d ? fmt2(d.getDate()) : '–'}</div>
-                            <div>
-                              <div className="h-rec-day">{d ? `${DAYS_ID[d.getDay()]}, ${MONTHS_ID[d.getMonth()]}` : '–'}</div>
-                              <div className="h-rec-month">{d?.getFullYear()}</div>
-                            </div>
-                          </div>
-                          <span className={`h-badge ${isComplete ? 'h-badge-full' : isPartial ? 'h-badge-partial' : 'h-badge-absent'}`}>
-                            {isComplete ? '✓ Lengkap' : isPartial ? 'Belum Pulang' : 'Tidak Hadir'}
-                          </span>
-                        </div>
-                        <div className="h-rec-shifts">
-                          {Object.entries(SHIFT_COLORS).map(([key, sc]) => {
-                            const inTime  = item[`${key}_in`];
-                            const outTime = item[`${key}_out`];
-                            const shiftDur = calcDuration(inTime, outTime);
-                            return (
-                              <div key={key} className="h-rec-shift-row">
-                                <div className="h-rec-shift-dot" style={{ background: sc.dot }} />
-                                <div className="h-rec-shift-label" style={{ color: sc.text }}>{sc.label}</div>
-                                <div className="h-rec-times-row">
-                                  <div className={`h-rec-time${!inTime ? ' empty' : ''}`}>{fmtTime(inTime) || '--:--'}</div>
-                                  <span className="h-rec-arrow">→</span>
-                                  <div className={`h-rec-time${!outTime ? ' empty' : ''}`}>{fmtTime(outTime) || '--:--'}</div>
-                                  {shiftDur && <div className="h-rec-dur">{shiftDur}</div>}
-                                </div>
-                              </div>
-                            );
-                          })}
+                      <div key={key} className="px-[14px] py-[10px] flex items-center gap-2.5 border-b last:border-b-0"
+                        style={{ background: sc.bg, borderBottomColor: sc.border }}>
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: sc.dot }} />
+                        <div className="text-[11.5px] font-bold flex-1" style={{ color: sc.text }}>Shift {sc.label}</div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 font-mono text-[11.5px] font-semibold text-slate-900"><IconIn /> {fmtTime(inTime) || '–'}</div>
+                          <span className="text-slate-300 text-[12px]">→</span>
+                          <div className="flex items-center gap-1 font-mono text-[11.5px] font-semibold text-slate-900"><IconOut /> {fmtTime(outTime) || '–'}</div>
+                          {dur && <div className="font-mono text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-[6px] px-1.5 py-0.5">{dur}</div>}
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-              </>
-            )}
-
-            {!loading && monthRecords.length === 0 && !selected && (
-              <div className="h-empty">
-                <svg style={{ opacity:.2 }} width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="7" y="6" width="26" height="28" rx="3"/><line x1="13" y1="14" x2="27" y2="14"/><line x1="13" y1="20" x2="27" y2="20"/><line x1="13" y1="26" x2="21" y2="26"/>
-                </svg>
-                <div className="h-empty-title">Tidak ada data bulan ini</div>
-                <div className="h-empty-sub">Pilih bulan lain atau mulai absen hari ini</div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Bottom nav ── */}
-          <div className="h-bnav-wrap">
-            <div className="h-bnav">
-              <nav className="h-bnav-grid">
-                <Link to="/" className={`h-bnav-item${routerLocation.pathname === '/' ? ' active' : ''}`}><IconHome /> Beranda</Link>
-                <Link to="/history" className={`h-bnav-item${routerLocation.pathname === '/history' ? ' active' : ''}`}><IconHistory /> Riwayat</Link>
-                <Link to="/profile" className={`h-bnav-item${routerLocation.pathname === '/profile' ? ' active' : ''}`}><IconUser /> Profil</Link>
-              </nav>
+                  })
+                : <div className="px-[14px] py-3 text-[12px] text-slate-400 text-center">Tidak ada data absensi untuk tanggal ini.</div>
+              }
             </div>
-          </div>
+          )}
 
+          {/* Month list */}
+          {!loading && monthRecords.length > 0 && (
+            <>
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-[12.5px] font-bold text-slate-900 py-0.5">Rekap {MONTHS_ID[viewMonth]}</span>
+                <span className="text-[10.5px] text-slate-400 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-0.5 font-medium">
+                  {monthRecords.length} hari
+                </span>
+              </div>
+              <div className="flex flex-col gap-[7px]">
+                {monthRecords.map(item => {
+                  const dateKey = isoDate(item.attendance_date);
+                  const d = dateKey ? new Date(dateKey + 'T00:00:00') : null;
+                  const isComplete = item.check_in_time && item.check_out_time;
+                  const isPartial  = item.check_in_time && !item.check_out_time;
+                  return (
+                    <div key={item.attendance_date} className="bg-white rounded-[16px] border border-slate-200 overflow-hidden transition hover:shadow-[0_4px_16px_rgba(0,0,0,.07)]">
+                      <div className="px-[13px] py-[10px] flex items-center justify-between gap-2 border-b border-slate-50">
+                        <div className="flex items-center gap-2.5">
+                          <div className="text-[22px] font-extrabold text-slate-900 leading-none tracking-[-0.04em] w-[34px] flex-shrink-0">
+                            {d ? fmt2(d.getDate()) : '–'}
+                          </div>
+                          <div>
+                            <div className="text-[12px] font-semibold text-slate-900">{d ? `${DAYS_ID[d.getDay()]}, ${MONTHS_ID[d.getMonth()]}` : '–'}</div>
+                            <div className="text-[10.5px] text-slate-400 mt-px">{d?.getFullYear()}</div>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold tracking-[.04em] px-[9px] py-[3px] rounded-full border flex-shrink-0 ${isComplete ? 'bg-emerald-50 text-[#065F46] border-[#A7F3D0]' : isPartial ? 'bg-amber-50 text-[#92400E] border-[#FDE68A]' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                          {isComplete ? '✓ Lengkap' : isPartial ? 'Belum Pulang' : 'Tidak Hadir'}
+                        </span>
+                      </div>
+                      <div className="py-1.5">
+                        {Object.entries(SHIFT_COLORS).map(([key, sc]) => {
+                          const inTime  = item[`${key}_in`];
+                          const outTime = item[`${key}_out`];
+                          const shiftDur = calcDuration(inTime, outTime);
+                          return (
+                            <div key={key} className="px-[13px] py-1.5 flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: sc.dot }} />
+                              <div className="text-[10.5px] font-semibold w-[42px] flex-shrink-0" style={{ color: sc.text }}>{sc.label}</div>
+                              <div className="flex items-center gap-2 flex-1">
+                                <span className={`font-mono text-[11.5px] font-semibold ${!inTime ? 'text-slate-200' : 'text-slate-900'}`}>{fmtTime(inTime) || '--:--'}</span>
+                                <span className="text-slate-300 text-[11px]">→</span>
+                                <span className={`font-mono text-[11.5px] font-semibold ${!outTime ? 'text-slate-200' : 'text-slate-900'}`}>{fmtTime(outTime) || '--:--'}</span>
+                                {shiftDur && <span className="font-mono text-[10px] font-semibold bg-slate-50 text-slate-500 border border-slate-200 rounded-[6px] px-1.5 py-0.5">{shiftDur}</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {!loading && monthRecords.length === 0 && !selected && (
+            <div className="bg-white rounded-[18px] border border-slate-200 px-5 py-10 flex flex-col items-center gap-2.5 text-center">
+              <svg className="opacity-20" width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="7" y="6" width="26" height="28" rx="3"/><line x1="13" y1="14" x2="27" y2="14"/><line x1="13" y1="20" x2="27" y2="20"/><line x1="13" y1="26" x2="21" y2="26"/>
+              </svg>
+              <div className="text-[13px] font-semibold text-slate-600">Tidak ada data bulan ini</div>
+              <div className="text-[11.5px] text-slate-400">Pilih bulan lain atau mulai absen hari ini</div>
+            </div>
+          )}
         </div>
+
+        {/* ── Bottom nav ── */}
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
+            <nav className="grid grid-cols-3 gap-1">
+              {[
+                { to: '/', label: 'Beranda', Icon: IconHome },
+                { to: '/history', label: 'Riwayat', Icon: IconHistory },
+                { to: '/profile', label: 'Profil', Icon: IconUser },
+              ].map(({ to, label, Icon }) => {
+                const active = isActive(to);
+                return (
+                  <Link key={to} to={to}
+                    className={`relative flex flex-col items-center gap-1 px-2 py-2 pb-1.5 rounded-[14px] no-underline text-[10px] font-semibold tracking-[.02em] transition ${active ? 'text-blue-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
+                    {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700"/>}
+                    <Icon />
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }
