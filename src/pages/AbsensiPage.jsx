@@ -100,7 +100,7 @@ const IconOut = () => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M7 3H3a1 1 0 00-1 1v12a1 1 0 001 1h4" /><polyline points="11,13 15,10 11,7" /><line x1="15" y1="10" x2="5" y2="10" />
   </svg>
-);
+); 
 const IconCheck = () => (
   <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="4,10 8,14 16,6" />
@@ -117,7 +117,7 @@ const IconPin = () => (
   </svg>
 );
 /* ══════════════════════════════════════════════════════════════════ */
-export default function DashboardPage() {
+export default function AbsensiPage() {
   const routerLocation = useLocation();
   const authUser = useAuthStore(s => s.user);
 
@@ -373,7 +373,7 @@ export default function DashboardPage() {
 
           {/* Section header */}
           <div className="flex items-center justify-between py-1">
-            <div className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px]">Absensi Shift</div>
+            <div className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px]">Absen Karyawan</div>
             <div className="text-[11px] font-semibold text-slate-400">{SHIFTS.length} shift hari ini</div>
           </div>
 
