@@ -1,0 +1,20 @@
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Keep existing security rule
+  RewriteRule ^\.builds - [F,L]
+
+  # Do not rewrite existing files/folders/symlinks
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d [OR]
+  RewriteCond %{REQUEST_FILENAME} -l
+  RewriteRule ^ - [L]
+
+  # SPA fallback (React Router)
+  RewriteRule . /index.html [L]
+</IfModule>
