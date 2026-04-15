@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
@@ -42,7 +42,7 @@ const SHIFTS = [
   {
     key: 'sore', label: 'Sore', optional: false,
     inLabel: '18:21 – 21:30', outLabel: '21:31 – 22:03',
-    inWin: [toMin(18, 21), toMin(21, 30)],
+    inWin: [toMin(18, 20), toMin(21, 30)],
     outWin: [toMin(21, 31), toMin(22, 3)],
     bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', accent: '#8B5CF6', iconBg: '#EDE9FE',
   },
@@ -73,6 +73,15 @@ const titleCase = s => (!s ? '' : s.toLowerCase().replace(/\b\w/g, c => c.toUppe
 const fmt2 = n => String(n).padStart(2, '0');
 const formatTime = v => { if (!v) return null; const d = new Date(v); return `${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`; };
 const formatLiveDate = d => d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const formatStamp = (d) => {
+  const y = d.getFullYear();
+  const m = fmt2(d.getMonth() + 1);
+  const day = fmt2(d.getDate());
+  const hh = fmt2(d.getHours());
+  const mm = fmt2(d.getMinutes());
+  const ss = fmt2(d.getSeconds());
+  return `${y}-${m}-${day} ${hh}:${mm}:${ss} WIB`;
+};
 
 /* ── Icons ───────────────────────────────────────────────────────── */
 const IconHome = () => (
@@ -126,6 +135,124 @@ export default function AbsensiPage() {
   const [loadingShift, setLoadingShift] = useState(null); // 'pagi-in' | 'sore-out' | null
   const [msgs, setMsgs] = useState({});   // { 'pagi-in': {text,type}, ... }
   const [now, setNow] = useState(new Date());
+  const videoRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+  const [cameraStreamTick, setCameraStreamTick] = useState(0);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraErr, setCameraErr] = useState(null);
+  const [videoReady, setVideoReady] = useState(false);
+  const [pendingPunch, setPendingPunch] = useState(null); // { shiftKey, punchType, coord, msgKey }
+  const [photoPreview, setPhotoPreview] = useState(null); // { url, title }
+
+  const canUseCamera = useMemo(() => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), []);
+
+  const stopCamera = useCallback(() => {
+    const v = videoRef.current;
+    const stream = cameraStreamRef.current || v?.srcObject;
+    if (stream && typeof stream.getTracks === 'function') {
+      stream.getTracks().forEach(t => t.stop());
+    }
+    if (v) v.srcObject = null;
+    cameraStreamRef.current = null;
+    setVideoReady(false);
+  }, []);
+
+  const openCamera = useCallback(async () => {
+    setCameraErr(null);
+    setVideoReady(false);
+    if (!canUseCamera) {
+      setCameraErr('Browser tidak mendukung kamera.');
+      return false;
+    }
+
+    const getStream = (videoConstraint) => navigator.mediaDevices.getUserMedia({
+      video: videoConstraint,
+      audio: false
+    });
+
+    try {
+      // Render modal first so <video> exists before attaching stream
+      setCameraOpen(true);
+
+      // Try front camera first, then rear camera if front fails.
+      let stream;
+      try {
+        stream = await getStream({ facingMode: { exact: 'user' } });
+      } catch {
+        try {
+          stream = await getStream({ facingMode: { exact: 'environment' } });
+        } catch {
+          // Last fallback: let browser choose any available camera.
+          stream = await getStream(true);
+        }
+      }
+
+      cameraStreamRef.current = stream;
+      setCameraStreamTick((v) => v + 1);
+      return true;
+    } catch (e) {
+      const errName = e?.name || '';
+      if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError') {
+        setCameraErr('Izin kamera ditolak.');
+      } else if (errName === 'NotFoundError' || errName === 'DevicesNotFoundError') {
+        setCameraErr('Kamera tidak ditemukan di perangkat ini.');
+      } else {
+        setCameraErr('Izin kamera ditolak / kamera tidak tersedia.');
+      }
+      setCameraOpen(false);
+      return false;
+    }
+  }, [canUseCamera]);
+
+  // Attach stream when modal & <video> are ready
+  useEffect(() => {
+    const v = videoRef.current;
+    const stream = cameraStreamRef.current;
+    if (!cameraOpen || !v || !stream) return;
+    if (v.srcObject !== stream) {
+      v.srcObject = stream;
+    }
+    v.play().catch(() => { });
+  }, [cameraOpen, cameraStreamTick]);
+
+  const captureSelfieWithTimestamp = useCallback(async () => {
+    const v = videoRef.current;
+    if (!v) return null;
+
+    const w = v.videoWidth;
+    const h = v.videoHeight;
+    if (!w || !h) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.drawImage(v, 0, 0, w, h);
+
+    const stamp = formatStamp(new Date());
+    const pad = Math.max(14, Math.floor(Math.min(w, h) * 0.02));
+    const fontSize = Math.max(14, Math.floor(Math.min(w, h) * 0.035));
+    ctx.font = `700 ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    const textW = ctx.measureText(stamp).width;
+    const boxW = textW + pad * 2;
+    const boxH = fontSize + pad;
+    const x = pad;
+    const y = h - boxH - pad;
+
+    // background box
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(x, y, boxW, boxH);
+    // text
+    ctx.fillStyle = 'white';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(stamp, x + pad, y + boxH / 2);
+
+    return await new Promise(resolve => {
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
+    });
+  }, []);
 
   // GPS state
   const [gpsState, setGpsState] = useState('idle'); // idle | loading | ok | out | denied
@@ -253,19 +380,80 @@ export default function AbsensiPage() {
       return;
     }
 
+    // Open camera flow (mandatory selfie)
+    setPendingPunch({ shiftKey, punchType, coord, msgKey });
+    const ok = await openCamera();
+    if (!ok) {
+      setMsgs(prev => ({ ...prev, [msgKey]: { text: 'Kamera tidak bisa dibuka. Izinkan akses kamera.', type: 'error' } }));
+      setPendingPunch(null);
+      setLoadingShift(null);
+      return;
+    }
+  };
+
+  const confirmSelfieAndSubmit = useCallback(async () => {
+    if (!pendingPunch) return;
+    const { shiftKey, punchType, coord, msgKey } = pendingPunch;
+
     try {
-      const res = await api.post('/attendance/shift-punch', {
-        shift_type: shiftKey, punch_type: punchType, lat: coord.lat, lng: coord.lng,
+      setCameraErr(null);
+      if (!videoReady) {
+        setCameraErr('Kamera belum siap. Tunggu 1-2 detik sampai video tampil, lalu coba lagi.');
+        return;
+      }
+
+      const blob = await captureSelfieWithTimestamp();
+      if (!blob) {
+        setCameraErr('Gagal mengambil foto. Pastikan video kamera sudah tampil, lalu coba lagi.');
+        return;
+      }
+
+      const form = new FormData();
+      form.append('shift_type', shiftKey);
+      form.append('punch_type', punchType);
+      form.append('lat', String(coord.lat));
+      form.append('lng', String(coord.lng));
+      form.append('selfie', blob, 'selfie.jpg');
+
+      const res = await api.post('/attendance/shift-punch-selfie', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       setMsgs(prev => ({ ...prev, [msgKey]: { text: res.data.message, type: 'success' } }));
       fetchShifts();
     } catch (e) {
       setMsgs(prev => ({
         ...prev,
-        [msgKey]: { text: e.response?.data?.message || 'Gagal menyimpan absensi', type: 'error' },
+        [pendingPunch.msgKey]: { text: e.response?.data?.message || e.message || 'Gagal menyimpan absensi', type: 'error' },
       }));
-    } finally { setLoadingShift(null); }
-  };
+      setCameraErr(e.response?.data?.message || e.message || 'Gagal menyimpan absensi');
+      return;
+    }
+
+    // success -> close modal
+    stopCamera();
+    setCameraOpen(false);
+    setPendingPunch(null);
+    setLoadingShift(null);
+  }, [pendingPunch, captureSelfieWithTimestamp, fetchShifts, stopCamera, videoReady]);
+
+  const cancelCamera = useCallback(() => {
+    if (pendingPunch?.msgKey) {
+      setMsgs(prev => ({ ...prev, [pendingPunch.msgKey]: { text: 'Absen dibatalkan.', type: 'error' } }));
+    }
+    stopCamera();
+    setCameraOpen(false);
+    setPendingPunch(null);
+    setLoadingShift(null);
+  }, [pendingPunch, stopCamera]);
+
+  const openPhotoPreview = useCallback((url, title) => {
+    if (!url) return;
+    setPhotoPreview({ url, title });
+  }, []);
+
+  const closePhotoPreview = useCallback(() => {
+    setPhotoPreview(null);
+  }, []);
 
   /* ── GPS badge ── */
   const gpsBadge = () => {
@@ -302,6 +490,110 @@ export default function AbsensiPage() {
   return (
     <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
+
+        {/* Camera modal (mandatory selfie; no gallery upload) */}
+        {cameraOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:p-4">
+            <div className="w-full max-w-[430px] max-h-[calc(100dvh-24px)] bg-white rounded-[18px] overflow-hidden shadow-[0_12px_60px_rgba(0,0,0,.35)] flex flex-col">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                <div className="text-[13px] font-extrabold text-slate-900">Ambil Selfie Absensi</div>
+                <button
+                  className="w-9 h-9 rounded-[12px] grid place-items-center border border-slate-200 bg-white text-slate-600"
+                  onClick={cancelCamera}
+                  type="button"
+                  aria-label="Tutup"
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M5 5l10 10M15 5L5 15" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-3 sm:p-4 overflow-y-auto">
+                {cameraErr && (
+                  <div className="mb-3 text-[11.5px] font-semibold px-3 py-2 rounded-xl bg-red-50 text-red-900 border border-red-100">
+                    {cameraErr}
+                  </div>
+                )}
+                <div className="rounded-[16px] overflow-hidden bg-black relative aspect-[3/4] sm:aspect-[4/5]">
+                  <video
+                    ref={videoRef}
+                    playsInline
+                    muted
+                    autoPlay
+                    onLoadedMetadata={() => {
+                      setVideoReady(true);
+                      videoRef.current?.play?.().catch(() => { });
+                    }}
+                    onCanPlay={() => setVideoReady(true)}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute left-3 bottom-3 text-[11px] font-extrabold text-white px-2.5 py-1 rounded-xl"
+                    style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    {formatStamp(now)}
+                  </div>
+                </div>
+                {!videoReady && (
+                  <div className="mt-2 text-[11px] font-semibold text-slate-500">
+                    Menyiapkan kamera…
+                  </div>
+                )}
+                <div className="mt-3 text-[11px] text-slate-500 font-medium leading-[1.5]">
+                  Foto diambil langsung dari kamera dan akan otomatis diberi timestamp.
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 sticky bottom-0 bg-white pt-1.5">
+                  <button
+                    className="h-[40px] rounded-[12px] border border-slate-200 bg-white text-slate-700 text-[12px] font-extrabold"
+                    onClick={cancelCamera}
+                    type="button"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    className="h-[40px] rounded-[12px] bg-blue-600 text-white text-[12px] font-extrabold disabled:opacity-50"
+                    onClick={confirmSelfieAndSubmit}
+                    type="button"
+                    disabled={!pendingPunch || !videoReady}
+                  >
+                    {videoReady ? 'Ambil & Kirim' : 'Menyiapkan...'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Photo preview modal */}
+        {photoPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-3 py-4"
+            onClick={closePhotoPreview}>
+            <div className="w-full max-w-[430px] max-h-[calc(100dvh-24px)] bg-white rounded-[18px] overflow-hidden shadow-[0_12px_60px_rgba(0,0,0,.35)] flex flex-col"
+              onClick={(e) => e.stopPropagation()}>
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <div className="text-[13px] font-extrabold text-slate-900 truncate pr-3">{photoPreview.title || 'Foto Absensi'}</div>
+                <button
+                  className="w-9 h-9 rounded-[12px] grid place-items-center border border-slate-200 bg-white text-slate-600"
+                  onClick={closePhotoPreview}
+                  type="button"
+                  aria-label="Tutup"
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M5 5l10 10M15 5L5 15" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-3 sm:p-4 overflow-y-auto">
+                <div className="rounded-[16px] overflow-hidden bg-slate-100 border border-slate-200">
+                  <img
+                    src={photoPreview.url}
+                    alt={photoPreview.title || 'Foto absensi'}
+                    className="w-full h-auto max-h-[72dvh] object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Hero ── */}
         <div className="relative overflow-hidden rounded-b-[28px] flex-shrink-0 pb-[22px]"
@@ -345,7 +637,7 @@ export default function AbsensiPage() {
         </div>
 
         {/* ── Content ── */}
-        <div className="flex-1 overflow-y-auto px-[14px] pt-[14px] pb-[110px] flex flex-col gap-2.5">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-[14px] pt-3 sm:pt-[14px] pb-[calc(110px+env(safe-area-inset-bottom))] flex flex-col gap-2.5">
 
           {/* GPS card */}
           <div className="rounded-[18px] px-[14px] py-3 flex items-center gap-2.5 border-[1.5px] bg-white shadow-[0_1px_4px_rgba(0,0,0,.04)] animate-fade-up"
@@ -372,9 +664,9 @@ export default function AbsensiPage() {
           </div>
 
           {/* Section header */}
-          <div className="flex items-center justify-between py-1">
+          <div className="flex items-center justify-between py-1 gap-2">
             <div className="text-[14px] font-extrabold text-slate-900 tracking-[-0.2px]">Absen Karyawan</div>
-            <div className="text-[11px] font-semibold text-slate-400">{SHIFTS.length} shift hari ini</div>
+            <div className="text-[11px] font-semibold text-slate-400 whitespace-nowrap">{SHIFTS.length} shift hari ini</div>
           </div>
 
           {/* Shift cards */}
@@ -390,6 +682,7 @@ export default function AbsensiPage() {
             const msgOut = msgs[`${shift.key}-out`];
             const inRange = gpsState === 'ok';
             const isActiveWin = winIn || winOut;
+            const checkInPhotoUrl = rec.check_in_photo_url || null;
 
             const badgeStyle = hasOut
               ? 'bg-emerald-50 text-emerald-800'
@@ -404,7 +697,7 @@ export default function AbsensiPage() {
                 style={{ borderColor: isActiveWin ? shift.accent : 'transparent', animationDelay: `${idx * .05}s` }}>
 
                 {/* Header */}
-                <div className="px-[14px] pt-3 pb-2.5 flex items-center gap-2.5">
+                <div className="px-[14px] pt-3 pb-2.5 flex items-center gap-2.5 max-[360px]:items-start">
                   <div className="text-[18px] w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-shrink-0"
                     style={{ background: shift.iconBg }}>
                     {shift.key === 'pagi' && '🌅'}
@@ -416,14 +709,14 @@ export default function AbsensiPage() {
                     <div className="text-[13.5px] font-extrabold" style={{ color: shift.text }}>Shift {shift.label}</div>
                     <div className="text-[10.5px] font-medium text-slate-400 mt-px">{shift.inLabel} / {shift.outLabel}</div>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0 max-[360px]:flex-col max-[360px]:items-end max-[360px]:gap-1">
                     {shift.optional && <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-full bg-slate-50 text-slate-400">Opsional</span>}
                     <span className={`text-[10px] font-bold tracking-[.02em] px-2.5 py-1 rounded-full whitespace-nowrap ${badgeStyle}`}>{badgeText}</span>
                   </div>
                 </div>
 
                 {/* Punch row */}
-                <div className="grid grid-cols-2 gap-2 px-[14px] pb-[14px]">
+                <div className="grid grid-cols-2 max-[360px]:grid-cols-1 gap-2 px-[14px] pb-[14px]">
                   {/* Masuk */}
                   <div className={`rounded-[14px] p-3 border-[1.5px] transition-[border-color] ${winIn ? 'border-blue-200 bg-[#F8FAFF]' : 'border-slate-100 bg-[#FAFBFC]'}`}>
                     <div className="flex items-center gap-1.5 mb-2">
@@ -448,6 +741,19 @@ export default function AbsensiPage() {
                         : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Masuk</button>
                       }
                     </div>
+                    {hasIn && checkInPhotoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => openPhotoPreview(checkInPhotoUrl, `Foto Masuk Shift ${shift.label}`)}
+                        className="mt-1.5 w-full h-[30px] rounded-[9px] border border-blue-200 bg-blue-50 text-blue-700 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1.5 transition hover:bg-blue-100 active:scale-[.98]"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1.5 10s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5z" />
+                          <circle cx="10" cy="10" r="2.4" />
+                        </svg>
+                        Lihat Foto
+                      </button>
+                    )}
                   </div>
 
                   {/* Keluar */}
@@ -497,7 +803,8 @@ export default function AbsensiPage() {
 
         {/* ── Bottom nav ── */}
         <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-4 sm:px-5 pt-1.5 shadow-[0_-4px_24px_rgba(0,0,0,.06)]"
+            style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
             <nav className="grid grid-cols-3 gap-1">
               {[
                 { to: '/', label: 'Beranda', Icon: IconHome },

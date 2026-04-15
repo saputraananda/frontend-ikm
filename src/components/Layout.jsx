@@ -4,29 +4,29 @@ import useAuthStore from '../store/authStore';
 
 const IconMenu = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-    <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+    <line x1="3" y1="5" x2="17" y2="5" /><line x1="3" y1="10" x2="17" y2="10" /><line x1="3" y1="15" x2="17" y2="15" />
   </svg>
 );
 const IconClose = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-    <line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/>
+    <line x1="4" y1="4" x2="16" y2="16" /><line x1="16" y1="4" x2="4" y2="16" />
   </svg>
 );
 const IconHome = () => (
   <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
-    <path d="M7.5 18V12.5h5V18"/>
+    <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+    <path d="M7.5 18V12.5h5V18" />
   </svg>
 );
 const IconHistory = () => (
   <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="10" cy="10" r="7.5"/><polyline points="10,6 10,10 13,12"/>
+    <circle cx="10" cy="10" r="7.5" /><polyline points="10,6 10,10 13,12" />
   </svg>
 );
 const IconLogout = () => (
   <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M7 3H4a1 1 0 00-1 1v12a1 1 0 001 1h3"/>
-    <polyline points="14,7 17,10 14,13"/><line x1="17" y1="10" x2="7" y2="10"/>
+    <path d="M7 3H4a1 1 0 00-1 1v12a1 1 0 001 1h3" />
+    <polyline points="14,7 17,10 14,13" /><line x1="17" y1="10" x2="7" y2="10" />
   </svg>
 );
 
@@ -36,10 +36,10 @@ const initials = (name) => {
 };
 
 export default function Layout({ children, title = 'Attendance' }) {
-  const navigate   = useNavigate();
-  const location   = useLocation();
-  const clearAuth  = useAuthStore(s => s.clearAuth);
-  const authUser   = useAuthStore(s => s.user);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const clearAuth = useAuthStore(s => s.clearAuth);
+  const authUser = useAuthStore(s => s.user);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
