@@ -18,13 +18,15 @@ function ProgressRing({ done, total, size = 56 }) {
     const pct = total > 0 ? done / total : 0;
     const offset = circ * (1 - pct);
     return (
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke}/>
-            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
-                strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-                style={{ transition: 'stroke-dashoffset .6s ease' }}/>
-            <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central" fill="#fff"
-                fontSize="14" fontWeight="800" style={{ transform: 'rotate(90deg)', transformOrigin: 'center' }}>
+        <svg width={size} height={size} style={{ flexShrink: 0 }}>
+            <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+                <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke}/>
+                <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
+                    strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+                    style={{ transition: 'stroke-dashoffset .6s ease' }}/>
+            </g>
+            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" dy="0.02em" fill="#fff"
+                fontSize="14" fontWeight="800">
                 {done}/{total}
             </text>
         </svg>
