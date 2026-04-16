@@ -9,6 +9,10 @@ const OFFICE_LNG = 106.8997063;
 const OFFICE_LAT_2 = -6.3848079;
 const OFFICE_LNG_2 = 106.8997077;
 const MAX_DIST_M = 200;
+const OFFICE_LABELS = {
+  1: 'Head Office Alora',
+  2: 'Laundry IKM Pringgondani'
+};
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
@@ -19,6 +23,21 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getNearestOfficeInfo(lat, lng) {
+  const dist1 = haversineMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
+  const dist2 = haversineMeters(lat, lng, OFFICE_LAT_2, OFFICE_LNG_2);
+  const officeId = dist1 <= dist2 ? 1 : 2;
+  return {
+    officeId,
+    label: OFFICE_LABELS[officeId],
+    distance: Math.min(dist1, dist2)
+  };
+}
+
+function getOfficeLabel(officeId) {
+  return OFFICE_LABELS[officeId] || '-';
 }
 
 /* ── Shift definitions ───────────────────────────────────────────── */
@@ -74,13 +93,15 @@ const fmt2 = n => String(n).padStart(2, '0');
 const formatTime = v => { if (!v) return null; const d = new Date(v); return `${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`; };
 const formatLiveDate = d => d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const formatStamp = (d) => {
-  const y = d.getFullYear();
-  const m = fmt2(d.getMonth() + 1);
-  const day = fmt2(d.getDate());
+  const dateId = d.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
   const hh = fmt2(d.getHours());
   const mm = fmt2(d.getMinutes());
   const ss = fmt2(d.getSeconds());
-  return `${y}-${m}-${day} ${hh}:${mm}:${ss} WIB`;
+  return `${dateId} ${hh}:${mm}:${ss} WIB`;
 };
 
 /* ── Icons ───────────────────────────────────────────────────────── */
@@ -141,7 +162,7 @@ export default function AbsensiPage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraErr, setCameraErr] = useState(null);
   const [videoReady, setVideoReady] = useState(false);
-  const [pendingPunch, setPendingPunch] = useState(null); // { shiftKey, punchType, coord, msgKey }
+  const [pendingPunch, setPendingPunch] = useState(null); // { shiftKey, punchType, coord, msgKey, officeLabel }
   const [photoPreview, setPhotoPreview] = useState(null); // { url, title }
 
   const canUseCamera = useMemo(() => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), []);
@@ -215,7 +236,7 @@ export default function AbsensiPage() {
     v.play().catch(() => { });
   }, [cameraOpen, cameraStreamTick]);
 
-  const captureSelfieWithTimestamp = useCallback(async () => {
+  const captureSelfieWithTimestamp = useCallback(async (officeLabel) => {
     const v = videoRef.current;
     if (!v) return null;
 
@@ -232,22 +253,33 @@ export default function AbsensiPage() {
     ctx.drawImage(v, 0, 0, w, h);
 
     const stamp = formatStamp(new Date());
+    const locationLine = `Lokasi: ${officeLabel || '-'}`;
     const pad = Math.max(14, Math.floor(Math.min(w, h) * 0.02));
-    const fontSize = Math.max(14, Math.floor(Math.min(w, h) * 0.035));
-    ctx.font = `700 ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-    const textW = ctx.measureText(stamp).width;
+    const primarySize = Math.max(14, Math.floor(Math.min(w, h) * 0.035));
+    const secondarySize = Math.max(12, Math.floor(primarySize * 0.78));
+    const lineGap = Math.max(4, Math.floor(primarySize * 0.35));
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = `700 ${primarySize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    const stampW = ctx.measureText(stamp).width;
+    ctx.font = `600 ${secondarySize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    const locationW = ctx.measureText(locationLine).width;
+    const textW = Math.max(stampW, locationW);
     const boxW = textW + pad * 2;
-    const boxH = fontSize + pad;
+    const boxH = pad * 2 + primarySize + lineGap + secondarySize;
     const x = pad;
     const y = h - boxH - pad;
 
     // background box
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(x, y, boxW, boxH);
-    // text
+    // timestamp
     ctx.fillStyle = 'white';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(stamp, x + pad, y + boxH / 2);
+    ctx.font = `700 ${primarySize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(stamp, x + pad, y + pad + primarySize);
+    // office label
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = `600 ${secondarySize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(locationLine, x + pad, y + pad + primarySize + lineGap + secondarySize);
 
     return await new Promise(resolve => {
       canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9);
@@ -261,6 +293,7 @@ export default function AbsensiPage() {
   const [, setGpsCoord] = useState(null);
   const [gpsRefreshKey, setGpsRefreshKey] = useState(0);
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
+  const nearestOfficeLabel = getOfficeLabel(nearestOffice);
 
   const displayName = titleCase(profile?.full_name || profile?.name || authUser?.full_name || authUser?.name || 'User');
   const role = profile?.position || profile?.department || 'Karyawan';
@@ -299,13 +332,11 @@ export default function AbsensiPage() {
     const onSuccess = (pos) => {
       const lat  = pos.coords.latitude;
       const lng  = pos.coords.longitude;
-      const dist1 = haversineMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
-      const dist2 = haversineMeters(lat, lng, OFFICE_LAT_2, OFFICE_LNG_2);
-      const dist = Math.min(dist1, dist2);
+      const officeInfo = getNearestOfficeInfo(lat, lng);
       setGpsCoord({ lat, lng });
-      setGpsDist(dist);
-      setNearestOffice(dist1 <= dist2 ? 1 : 2);
-      setGpsState(dist <= MAX_DIST_M ? 'ok' : 'out');
+      setGpsDist(officeInfo.distance);
+      setNearestOffice(officeInfo.officeId);
+      setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
       setGpsRefreshing(false);
     };
 
@@ -368,9 +399,8 @@ export default function AbsensiPage() {
       return;
     }
 
-    const dist1 = haversineMeters(coord.lat, coord.lng, OFFICE_LAT, OFFICE_LNG);
-    const dist2 = haversineMeters(coord.lat, coord.lng, OFFICE_LAT_2, OFFICE_LNG_2);
-    const dist = Math.min(dist1, dist2);
+    const officeInfo = getNearestOfficeInfo(coord.lat, coord.lng);
+    const dist = officeInfo.distance;
     if (dist > MAX_DIST_M) {
       setMsgs(prev => ({
         ...prev,
@@ -381,7 +411,7 @@ export default function AbsensiPage() {
     }
 
     // Open camera flow (mandatory selfie)
-    setPendingPunch({ shiftKey, punchType, coord, msgKey });
+  setPendingPunch({ shiftKey, punchType, coord, msgKey, officeLabel: officeInfo.label });
     const ok = await openCamera();
     if (!ok) {
       setMsgs(prev => ({ ...prev, [msgKey]: { text: 'Kamera tidak bisa dibuka. Izinkan akses kamera.', type: 'error' } }));
@@ -393,7 +423,7 @@ export default function AbsensiPage() {
 
   const confirmSelfieAndSubmit = useCallback(async () => {
     if (!pendingPunch) return;
-    const { shiftKey, punchType, coord, msgKey } = pendingPunch;
+    const { shiftKey, punchType, coord, msgKey, officeLabel } = pendingPunch;
 
     try {
       setCameraErr(null);
@@ -402,7 +432,7 @@ export default function AbsensiPage() {
         return;
       }
 
-      const blob = await captureSelfieWithTimestamp();
+      const blob = await captureSelfieWithTimestamp(officeLabel);
       if (!blob) {
         setCameraErr('Gagal mengambil foto. Pastikan video kamera sudah tampil, lalu coba lagi.');
         return;
@@ -528,9 +558,10 @@ export default function AbsensiPage() {
                     onCanPlay={() => setVideoReady(true)}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute left-3 bottom-3 text-[11px] font-extrabold text-white px-2.5 py-1 rounded-xl"
+                  <div className="absolute left-3 bottom-3 text-white px-2.5 py-1.5 rounded-xl"
                     style={{ background: 'rgba(0,0,0,0.55)' }}>
-                    {formatStamp(now)}
+                    <div className="text-[11px] font-extrabold">{formatStamp(now)}</div>
+                    <div className="text-[10px] font-semibold text-white/90 mt-0.5">Lokasi: {pendingPunch?.officeLabel || nearestOfficeLabel}</div>
                   </div>
                 </div>
                 {!videoReady && (
@@ -648,7 +679,7 @@ export default function AbsensiPage() {
             </div>
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="text-[12.5px] font-bold" style={{ color: gps.color }}>{gps.text}</div>
-              <div className="text-[10.5px] font-medium text-slate-400 mt-px">{nearestOffice === 1 ? 'Head Office Alora' : 'Laundry IKM Pringgondani'} · maks {MAX_DIST_M}m</div>
+              <div className="text-[10.5px] font-medium text-slate-400 mt-px">{nearestOfficeLabel} · maks {MAX_DIST_M}m</div>
             </div>
             <button
               className="w-8 h-8 rounded-[10px] border-[1.5px] bg-white/70 grid place-items-center cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed"

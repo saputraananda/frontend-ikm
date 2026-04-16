@@ -104,8 +104,13 @@ export default function HomePage() {
     const shiftSummary = (() => {
         if (!todayShifts) return null;
         const keys = ['pagi', 'siang', 'sore', 'lembur'];
-        const done = keys.filter(k => todayShifts[k]?.check_in_time);
-        return { total: keys.length, done: done.length, todayShifts, keys };
+        const done = keys.reduce((count, k) => {
+            const shift = todayShifts[k] || {};
+            const inDone = shift.check_in_time ? 1 : 0;
+            const outDone = shift.check_out_time ? 1 : 0;
+            return count + inDone + outDone;
+        }, 0);
+        return { total: keys.length * 2, done, todayShifts, keys };
     })();
 
     const formatShiftTime = useCallback((v) => {
