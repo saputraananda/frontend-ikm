@@ -215,22 +215,6 @@ export default function HomePage() {
                         </Link>
                     </div>
 
-                    {/* Progress */}
-                    {shiftSummary && (
-                        <div className="px-4 pt-[18px] animate-fade-up">
-                            <div className="bg-white rounded-[16px] p-4 shadow-[0_1px_3px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)]">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-[12px] font-semibold text-slate-500">Progress Hari Ini</span>
-                                    <span className="text-[12px] font-extrabold text-slate-900">{shiftSummary.done} / {shiftSummary.total} shift</span>
-                                </div>
-                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full transition-all duration-[600ms]"
-                                        style={{ width: `${(shiftSummary.done / shiftSummary.total) * 100}%`, background: 'linear-gradient(90deg, #3B82F6, #1D4ED8)' }} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* Shift timeline */}
                     <div className="px-4 pt-[18px] animate-fade-up">
                         <div className="flex items-center justify-between mb-3">
