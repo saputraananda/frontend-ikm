@@ -196,26 +196,41 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    {/* Quick action banner */}
-                    <div className="px-4 pt-[18px]">
+                    {/* Quick action banners */}
+                    <div className="px-4 pt-[18px] grid grid-cols-2 gap-3">
+                        {/* Absensi Normal */}
                         <Link to="/attendance"
-                            className="relative overflow-hidden rounded-[20px] px-5 py-[18px] flex items-center gap-4 no-underline cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(15,23,42,.25)] active:scale-[.98] shadow-[0_8px_24px_rgba(15,23,42,.2)] animate-fade-up"
-                            style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #1D4ED8 100%)' }}>
-                            <div className="absolute -top-5 -right-5 w-[100px] h-[100px] rounded-full"
-                                style={{ background: 'radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%)' }} />
-                            <div className="relative z-[1] w-12 h-12 rounded-[14px] bg-blue-500/15 border border-blue-500/25 grid place-items-center flex-shrink-0">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            className="relative overflow-hidden rounded-[20px] px-4 py-5 flex flex-col gap-3 no-underline cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(15,23,42,.25)] active:scale-[.97] shadow-[0_6px_20px_rgba(15,23,42,.18)] animate-fade-up"
+                            style={{ background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 55%, #1D4ED8 100%)' }}>
+                            <div className="absolute -top-4 -right-4 w-[80px] h-[80px] rounded-full pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(59,130,246,.22) 0%, transparent 70%)' }} />
+                            <div className="relative z-[1] w-10 h-10 rounded-[12px] bg-blue-500/15 border border-blue-500/25 grid place-items-center flex-shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
                                 </svg>
                             </div>
-                            <div className="relative z-[1] flex-1">
-                                <div className="text-[14px] font-extrabold text-white tracking-[-0.2px]">Absen Sekarang</div>
-                                <div className="text-[11.5px] text-white/45 font-medium mt-0.5">Lakukan absensi shift hari ini</div>
+                            <div className="relative z-[1]">
+                                <div className="text-[13px] font-extrabold text-white leading-snug tracking-[-0.2px]">Absen Normal</div>
+                                <div className="text-[10.5px] text-white/45 font-medium mt-0.5 leading-snug">Absensi shift karyawan</div>
                             </div>
-                            <div className="relative z-[1] w-8 h-8 rounded-[10px] bg-white/8 grid place-items-center text-white/50 flex-shrink-0">
-                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="8,5 13,10 8,15"/>
+                        </Link>
+
+                        {/* Absensi Valet */}
+                        <Link to="/valet"
+                            className="relative overflow-hidden rounded-[20px] px-4 py-5 flex flex-col gap-3 no-underline cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(4,120,87,.25)] active:scale-[.97] shadow-[0_6px_20px_rgba(4,120,87,.18)] animate-fade-up"
+                            style={{ background: 'linear-gradient(145deg, #022C22 0%, #065F46 55%, #059669 100%)' }}>
+                            <div className="absolute -top-4 -right-4 w-[80px] h-[80px] rounded-full pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(16,185,129,.22) 0%, transparent 70%)' }} />
+                            <div className="relative z-[1] w-10 h-10 rounded-[12px] bg-emerald-400/15 border border-emerald-400/25 grid place-items-center flex-shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5 16v3"/><path d="M19 16v3"/><path d="M2 12h20"/>
+                                    <path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12"/>
+                                    <circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/>
                                 </svg>
+                            </div>
+                            <div className="relative z-[1]">
+                                <div className="text-[13px] font-extrabold text-white leading-snug tracking-[-0.2px]">Absen Valet</div>
+                                <div className="text-[10.5px] text-white/45 font-medium mt-0.5 leading-snug">Absensi shift valet</div>
                             </div>
                         </Link>
                     </div>

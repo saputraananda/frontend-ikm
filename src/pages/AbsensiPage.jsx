@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
 
@@ -149,6 +149,7 @@ const IconPin = () => (
 /* ══════════════════════════════════════════════════════════════════ */
 export default function AbsensiPage() {
   const routerLocation = useLocation();
+  const navigate = useNavigate();
   const authUser = useAuthStore(s => s.user);
 
   const [profile, setProfile] = useState(authUser || null);
@@ -164,6 +165,10 @@ export default function AbsensiPage() {
   const [videoReady, setVideoReady] = useState(false);
   const [pendingPunch, setPendingPunch] = useState(null); // { shiftKey, punchType, coord, msgKey, officeLabel }
   const [photoPreview, setPhotoPreview] = useState(null); // { url, title }
+
+  /* ── Cross-check warning state ── */
+  const [crossWarning, setCrossWarning] = useState(false);
+  const [crossDismissed, setCrossDismissed] = useState(false);
 
   const canUseCamera = useMemo(() => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), []);
 
@@ -316,6 +321,15 @@ export default function AbsensiPage() {
     api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
     fetchShifts();
   }, [fetchShifts]);
+
+  /* ── Cross-check: warn if user has valet attendance today ── */
+  useEffect(() => {
+    api.get('/attendance/check-cross').then(r => {
+      if (r.data.data?.has_valet) {
+        setCrossWarning(true);
+      }
+    }).catch(() => { });
+  }, []);
 
   /* ── GPS watch ──
      Strategi dua-fase:
@@ -520,6 +534,41 @@ export default function AbsensiPage() {
   return (
     <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
+
+        {/* Cross-check warning modal */}
+        {crossWarning && !crossDismissed && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-[360px] bg-white rounded-[20px] overflow-hidden shadow-[0_16px_64px_rgba(0,0,0,.3)]">
+              <div className="px-5 pt-5 pb-3 text-center">
+                <div className="w-14 h-14 rounded-[16px] bg-amber-50 border-2 border-amber-200 grid place-items-center mx-auto mb-3">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Peringatan</div>
+                <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
+                  Anda hari ini sudah melakukan absensi sebagai <span className="font-bold text-teal-700">Valet</span>.
+                  Apakah Anda yakin ingin melanjutkan absensi sebagai <span className="font-bold text-slate-700">karyawan normal</span>?
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-2">
+                <button
+                  className="h-[42px] rounded-[12px] border border-slate-200 bg-white text-slate-700 text-[12.5px] font-extrabold transition hover:bg-slate-50"
+                  onClick={() => navigate('/')}
+                >
+                  Kembali
+                </button>
+                <button
+                  className="h-[42px] rounded-[12px] bg-blue-600 text-white text-[12.5px] font-extrabold transition hover:bg-blue-700"
+                  onClick={() => setCrossDismissed(true)}
+                >
+                  Ya, Lanjutkan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Camera modal (mandatory selfie; no gallery upload) */}
         {cameraOpen && (
