@@ -157,6 +157,9 @@ export default function ValetPage() {
   const [crossWarning, setCrossWarning] = useState(false);
   const [crossDismissed, setCrossDismissed] = useState(false);
 
+  /* ── Today leave lock ── */
+  const [todayLeave, setTodayLeave] = useState(undefined);
+
   const canUseCamera = useMemo(() => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), []);
 
   const stopCamera = useCallback(() => {
@@ -300,6 +303,7 @@ export default function ValetPage() {
   useEffect(() => {
     api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
     fetchShifts();
+    api.get('/leave/today').then(r => setTodayLeave(r.data.data || null)).catch(() => setTodayLeave(null));
   }, [fetchShifts]);
 
   /* ── Cross-check: warn if user has normal attendance today ── */
@@ -500,9 +504,52 @@ export default function ValetPage() {
 
   const isActive = (p) => routerLocation.pathname === p;
 
+  /* ── Leave lock: full_day blocks valet attendance ── */
+  const isLockedByLeave = todayLeave && todayLeave.duration_type === 'full_day';
+
   return (
     <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
+
+        {/* ── Leave Lock Modal ── */}
+        {isLockedByLeave && (
+          <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-[360px] bg-white rounded-[20px] overflow-hidden shadow-[0_16px_64px_rgba(0,0,0,.3)]">
+              <div className="px-5 pt-5 pb-3 text-center">
+                <div className="w-14 h-14 rounded-[16px] bg-amber-50 border-2 border-amber-200 grid place-items-center mx-auto mb-3">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+                  </svg>
+                </div>
+                <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Halaman Terkunci</div>
+                <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
+                  Anda mengajukan{' '}
+                  <span className="font-bold text-amber-600">
+                    {todayLeave.leave_type === 'izin' ? 'Izin' : todayLeave.leave_type === 'sakit' ? 'Izin Sakit' : 'Cuti'}
+                  </span>{' '}
+                  hari ini. Absensi valet tidak dapat dilakukan.{' '}
+                  <span className={todayLeave.status === 'disetujui' ? 'text-emerald-600 font-semibold' : 'text-amber-500 font-semibold'}>
+                    ({todayLeave.status === 'pengajuan' ? 'Menunggu Persetujuan' : 'Disetujui'})
+                  </span>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-2">
+                <button
+                  className="h-[42px] rounded-[12px] border border-slate-200 bg-white text-slate-700 text-[12.5px] font-extrabold transition hover:bg-slate-50 cursor-pointer"
+                  onClick={() => navigate('/')}
+                >
+                  Beranda
+                </button>
+                <button
+                  className="h-[42px] rounded-[12px] bg-amber-400 text-slate-900 text-[12.5px] font-extrabold transition hover:bg-amber-300 cursor-pointer"
+                  onClick={() => navigate('/leave')}
+                >
+                  Lihat Izin
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cross-check warning modal */}
         {crossWarning && !crossDismissed && (
@@ -517,7 +564,7 @@ export default function ValetPage() {
                 </div>
                 <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Peringatan</div>
                 <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
-                  Anda hari ini sudah melakukan absensi sebagai <span className="font-bold text-slate-700">karyawan normal</span>.
+                  Anda hari ini sudah melakukan absensi sebagai <span className="font-bold text-slate-700">shift normal</span>.
                   Apakah Anda yakin ingin melanjutkan absensi sebagai <span className="font-bold text-teal-700">Valet</span>?
                 </div>
               </div>

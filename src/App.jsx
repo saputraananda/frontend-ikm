@@ -8,6 +8,7 @@ import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import ReportLeader from './pages/ReportLeader';
 import AboutAppPage from './pages/AboutAppPage';
+import LeavePage from './pages/LeavePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/report" element={<ProtectedRoute><ReportLeader /></ProtectedRoute>} />
         <Route path="/about" element={<ProtectedRoute><AboutAppPage /></ProtectedRoute>} />
+        <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={token ? '/' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>

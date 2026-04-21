@@ -130,7 +130,7 @@ const IconOut = () => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M7 3H3a1 1 0 00-1 1v12a1 1 0 001 1h4" /><polyline points="11,13 15,10 11,7" /><line x1="15" y1="10" x2="5" y2="10" />
   </svg>
-); 
+);
 const IconCheck = () => (
   <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="4,10 8,14 16,6" />
@@ -169,6 +169,9 @@ export default function AbsensiPage() {
   /* ── Cross-check warning state ── */
   const [crossWarning, setCrossWarning] = useState(false);
   const [crossDismissed, setCrossDismissed] = useState(false);
+
+  /* ── Today leave lock ── */
+  const [todayLeave, setTodayLeave] = useState(undefined); // undefined = loading, null = none
 
   const canUseCamera = useMemo(() => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), []);
 
@@ -320,6 +323,7 @@ export default function AbsensiPage() {
   useEffect(() => {
     api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
     fetchShifts();
+    api.get('/leave/today').then(r => setTodayLeave(r.data.data || null)).catch(() => setTodayLeave(null));
   }, [fetchShifts]);
 
   /* ── Cross-check: warn if user has valet attendance today ── */
@@ -344,8 +348,8 @@ export default function AbsensiPage() {
     let watchId = null;
 
     const onSuccess = (pos) => {
-      const lat  = pos.coords.latitude;
-      const lng  = pos.coords.longitude;
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
       const officeInfo = getNearestOfficeInfo(lat, lng);
       setGpsCoord({ lat, lng });
       setGpsDist(officeInfo.distance);
@@ -425,7 +429,7 @@ export default function AbsensiPage() {
     }
 
     // Open camera flow (mandatory selfie)
-  setPendingPunch({ shiftKey, punchType, coord, msgKey, officeLabel: officeInfo.label });
+    setPendingPunch({ shiftKey, punchType, coord, msgKey, officeLabel: officeInfo.label });
     const ok = await openCamera();
     if (!ok) {
       setMsgs(prev => ({ ...prev, [msgKey]: { text: 'Kamera tidak bisa dibuka. Izinkan akses kamera.', type: 'error' } }));
@@ -531,9 +535,52 @@ export default function AbsensiPage() {
 
   const isActive = (p) => routerLocation.pathname === p;
 
+  /* ── Leave lock: full_day blocks attendance ── */
+  const isLockedByLeave = todayLeave && todayLeave.duration_type === 'full_day';
+
   return (
     <div className="min-h-[100dvh] bg-slate-100 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[100dvh] bg-slate-50 flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.04),0_8px_48px_rgba(0,0,0,.08)] relative overflow-hidden">
+
+        {/* ── Leave Lock Modal ── */}
+        {isLockedByLeave && (
+          <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-[360px] bg-white rounded-[20px] overflow-hidden shadow-[0_16px_64px_rgba(0,0,0,.3)]">
+              <div className="px-5 pt-5 pb-3 text-center">
+                <div className="w-14 h-14 rounded-[16px] bg-amber-50 border-2 border-amber-200 grid place-items-center mx-auto mb-3">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+                  </svg>
+                </div>
+                <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Halaman Terkunci</div>
+                <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
+                  Anda mengajukan{' '}
+                  <span className="font-bold text-amber-600">
+                    {todayLeave.leave_type === 'izin' ? 'Izin' : todayLeave.leave_type === 'sakit' ? 'Izin Sakit' : 'Cuti'}
+                  </span>{' '}
+                  hari ini. Absensi tidak dapat dilakukan.{' '}
+                  <span className={todayLeave.status === 'disetujui' ? 'text-emerald-600 font-semibold' : 'text-amber-500 font-semibold'}>
+                    ({todayLeave.status === 'pengajuan' ? 'Menunggu Persetujuan' : 'Disetujui'})
+                  </span>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-2">
+                <button
+                  className="h-[42px] rounded-[12px] border border-slate-200 bg-white text-slate-700 text-[12.5px] font-extrabold transition hover:bg-slate-50 cursor-pointer"
+                  onClick={() => navigate('/')}
+                >
+                  Beranda
+                </button>
+                <button
+                  className="h-[42px] rounded-[12px] bg-amber-400 text-slate-900 text-[12.5px] font-extrabold transition hover:bg-amber-300 cursor-pointer"
+                  onClick={() => navigate('/leave')}
+                >
+                  Lihat Izin
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cross-check warning modal */}
         {crossWarning && !crossDismissed && (
@@ -542,14 +589,14 @@ export default function AbsensiPage() {
               <div className="px-5 pt-5 pb-3 text-center">
                 <div className="w-14 h-14 rounded-[16px] bg-amber-50 border-2 border-amber-200 grid place-items-center mx-auto mb-3">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </div>
                 <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Peringatan</div>
                 <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
                   Anda hari ini sudah melakukan absensi sebagai <span className="font-bold text-teal-700">Valet</span>.
-                  Apakah Anda yakin ingin melanjutkan absensi sebagai <span className="font-bold text-slate-700">karyawan normal</span>?
+                  Apakah Anda yakin ingin melanjutkan absensi sebagai <span className="font-bold text-slate-700">shift normal</span>?
                 </div>
               </div>
               <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-2">
@@ -690,7 +737,7 @@ export default function AbsensiPage() {
               <Link to="/" aria-label="Kembali"
                 className="w-9 h-9 rounded-[11px] bg-white/10 border border-white/12 text-white grid place-items-center flex-shrink-0 transition hover:bg-white/20 no-underline backdrop-blur-xl">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="12,15 7,10 12,5"/>
+                  <polyline points="12,15 7,10 12,5" />
                 </svg>
               </Link>
               <div className="min-w-0 overflow-hidden">
@@ -736,7 +783,7 @@ export default function AbsensiPage() {
               style={{ borderColor: gps.border, color: gps.color }} title="Refresh lokasi">
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                 style={{ animation: gpsRefreshing ? 'spin 1s linear infinite' : 'none' }}>
-                <path d="M17 10a7 7 0 1 1-1.34-4.09"/><polyline points="17,3 17,8 12,8"/>
+                <path d="M17 10a7 7 0 1 1-1.34-4.09" /><polyline points="17,3 17,8 12,8" />
               </svg>
             </button>
             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${gpsRefreshing || gpsState === 'loading' ? 'animate-pulse' : ''}`}
@@ -767,8 +814,8 @@ export default function AbsensiPage() {
             const badgeStyle = hasOut
               ? 'bg-emerald-50 text-emerald-800'
               : hasIn
-              ? 'bg-blue-50 text-blue-700'
-              : 'bg-slate-50 text-slate-300';
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-slate-50 text-slate-300';
             const badgeText = hasOut ? '✓ Selesai' : hasIn ? 'Berjalan' : 'Belum';
 
             return (
@@ -812,13 +859,13 @@ export default function AbsensiPage() {
                       {hasIn
                         ? <button className="w-full h-[34px] rounded-[10px] bg-green-50 text-green-700 border border-green-200 text-[11.5px] font-bold flex items-center justify-center gap-1.5" disabled><IconCheck /> Tercatat</button>
                         : winIn
-                        ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
+                          ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ background: inRange ? shift.accent : '#CBD5E1' }}
                             onClick={() => inRange && handlePunch(shift.key, 'in')}
                             disabled={loadIn || !inRange}>
                             {loadIn ? 'Simpan…' : inRange ? 'Masuk' : 'Diluar'}
                           </button>
-                        : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Masuk</button>
+                          : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Masuk</button>
                       }
                     </div>
                     {hasIn && checkInPhotoUrl && (
@@ -851,13 +898,13 @@ export default function AbsensiPage() {
                       {hasOut
                         ? <button className="w-full h-[34px] rounded-[10px] bg-green-50 text-green-700 border border-green-200 text-[11.5px] font-bold flex items-center justify-center gap-1.5" disabled><IconCheck /> Tercatat</button>
                         : winOut
-                        ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
+                          ? <button className="w-full h-[34px] rounded-[10px] text-[11.5px] font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[.96] disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ background: inRange && hasIn ? shift.accent : '#CBD5E1' }}
                             onClick={() => inRange && hasIn && handlePunch(shift.key, 'out')}
                             disabled={loadOut || !inRange || !hasIn}>
                             {loadOut ? 'Simpan…' : !hasIn ? 'Belum Masuk' : inRange ? 'Keluar' : 'Diluar'}
                           </button>
-                        : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Keluar</button>
+                          : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Keluar</button>
                       }
                     </div>
                   </div>
@@ -895,7 +942,7 @@ export default function AbsensiPage() {
                 return (
                   <Link key={to} to={to}
                     className={`relative flex flex-col items-center gap-1 px-2 py-2 pb-1.5 rounded-[14px] no-underline text-[10px] font-semibold tracking-[.02em] transition ${active ? 'text-blue-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
-                    {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700"/>}
+                    {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-b-[3px] bg-blue-700" />}
                     <Icon />
                     {label}
                   </Link>

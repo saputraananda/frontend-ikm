@@ -331,8 +331,7 @@ export default function HistoryPage() {
 
         {/* ── Bottom nav ── */}
         <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 shadow-[0_-4px_24px_rgba(0,0,0,.06)]"
-            style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+          <div className="pointer-events-auto w-full max-w-[430px] bg-white/92 backdrop-blur-[20px] border-t border-slate-200/60 px-5 pt-1.5 pb-safe-6 shadow-[0_-4px_24px_rgba(0,0,0,.06)]">
             <nav className="grid grid-cols-3 gap-1">
               {[
                 { to: '/', label: 'Beranda', Icon: IconHome },
