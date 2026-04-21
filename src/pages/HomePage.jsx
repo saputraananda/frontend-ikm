@@ -54,21 +54,21 @@ const MENU_ITEMS = [
     { key: 'absensi', label: 'Absensi', to: '/attendance',
       icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
       bg: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)' },
-        { key: 'valet', label: 'Valet', to: '/valet',
-            icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16v3"/><path d="M19 16v3"/><path d="M2 12h20"/><path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12"/><circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/></svg>,
-            bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
-        { key: 'riwayat', label: 'Riwayat', to: '/history',
-            icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>,
-            bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)' },
-        { key: 'izin-cuti', label: 'Izin / Cuti', to: '/leave',
-            icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="19"/><line x1="8" y1="17" x2="16" y2="17"/></svg>,
-            bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
-        { key: 'leader', label: 'Leader', to: '/report',
-            icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>,
-            bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)' },
-        { key: 'tentang-aplikasi', label: 'Tentang Aplikasi', to: '/about',
-            icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="#6366F1"/></svg>,
-            bg: 'linear-gradient(135deg, #E0E7FF 0%, #EEF2FF 100%)' },
+    { key: 'valet', label: 'Valet', to: '/valet',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16v3"/><path d="M19 16v3"/><path d="M2 12h20"/><path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12"/><circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/></svg>,
+        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
+    { key: 'izin-cuti', label: 'Izin / Cuti', to: '/leave',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="19"/><line x1="8" y1="17" x2="16" y2="17"/></svg>,
+        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
+    { key: 'deputi', label: 'Deputi', to: '/leader',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M18 3l2 2-6 6"/></svg>,
+        bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)' },
+    { key: 'leader', label: 'Leader', to: '/leader',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>,
+        bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)' },
+    { key: 'kasbon', label: 'Kasbon', to: null,
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="12" cy="15" r="2"/><path d="M6 15h.01M18 15h.01"/></svg>,
+        bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)' },
 ];
 
 const SHIFT_META = {
@@ -148,13 +148,14 @@ export default function HomePage() {
                                 <div className="text-[11px] text-white/55 font-medium truncate mt-0.5">{role}{empId && ` · ${empId}`}</div>
                             </div>
                         </div>
-                        <button className="w-[38px] h-[38px] rounded-[12px] bg-white/10 border border-white/12 text-white grid place-items-center cursor-pointer transition hover:bg-white/20 backdrop-blur-xl flex-shrink-0"
-                            aria-label="Notifikasi">
-                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M10 2a5 5 0 0 1 5 5c0 5 2 6 2 6H3s2-1 2-6a5 5 0 0 1 5-5z"/>
-                                <path d="M8.5 17a1.5 1.5 0 0 0 3 0"/>
+                        <Link to="/about" className="w-[38px] h-[38px] rounded-[12px] bg-white/10 border border-white/12 text-white grid place-items-center cursor-pointer transition hover:bg-white/20 backdrop-blur-xl flex-shrink-0"
+                            aria-label="Tentang Aplikasi">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <line x1="12" y1="8" x2="12" y2="8.5" strokeWidth="2.5"/>
+                                <line x1="12" y1="12" x2="12" y2="17"/>
                             </svg>
-                        </button>
+                        </Link>
                     </div>
 
                     {/* Clock + greeting */}
