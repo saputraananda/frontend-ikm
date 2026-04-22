@@ -4,15 +4,7 @@ import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
 
 /* ── Office location ─────────────────────────────────────────────── */
-const OFFICE_LAT = -6.3983239;
-const OFFICE_LNG = 106.8997063;
-const OFFICE_LAT_2 = -6.3848079;
-const OFFICE_LNG_2 = 106.8997077;
 const MAX_DIST_M = 200;
-const OFFICE_LABELS = {
-  1: 'Head Office Alora',
-  2: 'Laundry IKM Pringgondani'
-};
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
@@ -25,40 +17,75 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function getNearestOfficeInfo(lat, lng) {
-  const dist1 = haversineMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
-  const dist2 = haversineMeters(lat, lng, OFFICE_LAT_2, OFFICE_LNG_2);
-  const officeId = dist1 <= dist2 ? 1 : 2;
+function getNearestOfficeInfo(lat, lng, locations) {
+  if (!Array.isArray(locations) || locations.length === 0) {
+    return { label: '-', distance: Infinity };
+  }
+
+  let nearestLocation = null;
+  let minDistance = Infinity;
+
+  for (const location of locations) {
+    const latitude = parseFloat(location.latitude);
+    const longitude = parseFloat(location.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+
+    const distance = haversineMeters(lat, lng, latitude, longitude);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestLocation = location;
+    }
+  }
+
+  if (!nearestLocation) {
+    return { label: '-', distance: Infinity };
+  }
+
   return {
-    officeId,
-    label: OFFICE_LABELS[officeId],
-    distance: Math.min(dist1, dist2)
+    label: nearestLocation.location_name || '-',
+    distance: minDistance
   };
 }
 
-function getOfficeLabel(officeId) {
-  return OFFICE_LABELS[officeId] || '-';
+/* ── Shift helpers ───────────────────────────────────────────────── */
+function timeStrToMin(t) {
+  const parts = String(t).split(':').map(Number);
+  return parts[0] * 60 + (parts[1] || 0);
 }
 
-/* ── Valet shift definitions ─────────────────────────────────────── */
-const toMin = (h, m) => h * 60 + m;
+function timeStrToLabel(t) {
+  const parts = String(t).split(':').map(Number);
+  return `${String(parts[0]).padStart(2, '0')}:${String(parts[1] || 0).padStart(2, '0')}`;
+}
 
-const SHIFTS = [
-  {
-    key: 'pagi', label: 'Pagi', optional: false,
-    inLabel: '04:00 – 05:30', outLabel: '08:30 – 14:00',
-    inWin: [toMin(4, 0), toMin(5, 30)],
-    outWin: [toMin(8, 30), toMin(14, 0)],
-    bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', accent: '#06B6D4', iconBg: '#CFFAFE',
-  },
-  {
-    key: 'sore', label: 'Sore', optional: false,
-    inLabel: '13:00 – 16:00', outLabel: '17:00 – 03:59',
-    inWin: [toMin(13, 0), toMin(16, 0)],
-    outWin: null, // spans midnight — special case
-    bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', accent: '#14B8A6', iconBg: '#CCFBF1',
-  },
-];
+const SHIFT_STYLES = {
+  pagi: { optional: false, bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', accent: '#06B6D4', iconBg: '#CFFAFE' },
+  sore: { optional: false, bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', accent: '#14B8A6', iconBg: '#CCFBF1' },
+};
+
+function buildShiftsFromDB(rows) {
+  return rows.map(row => {
+    const key   = row.shift_name.toLowerCase();
+    const label = row.shift_name.charAt(0).toUpperCase() + row.shift_name.slice(1).toLowerCase();
+    const style = SHIFT_STYLES[key] || { optional: false, bg: '#F8FAFC', border: '#E2E8F0', text: '#334155', accent: '#64748B', iconBg: '#F1F5F9' };
+    const outStart = timeStrToMin(row.check_out_start);
+    const outEnd   = timeStrToMin(row.check_out_end);
+    return {
+      key,
+      label,
+      optional:    style.optional,
+      inLabel:     `${timeStrToLabel(row.check_in_start)} – ${timeStrToLabel(row.check_in_end)}`,
+      outLabel:    row.is_overnight
+        ? `${timeStrToLabel(row.check_out_start)} – 03:59`
+        : `${timeStrToLabel(row.check_out_start)} – ${timeStrToLabel(row.check_out_end)}`,
+      inWin:       [timeStrToMin(row.check_in_start), timeStrToMin(row.check_in_end)],
+      outWin:      row.is_overnight ? null : [outStart, outEnd],
+      outWinStart: outStart,
+      is_overnight: !!row.is_overnight,
+      bg: style.bg, border: style.border, text: style.text, accent: style.accent, iconBg: style.iconBg,
+    };
+  });
+}
 
 function getCurrentMin() {
   const n = new Date();
@@ -68,7 +95,7 @@ function getCurrentMin() {
 function isInWindow(shift, punchType) {
   const m = getCurrentMin();
   if (punchType === 'in') return m >= shift.inWin[0] && m <= shift.inWin[1];
-  if (shift.key === 'sore' && punchType === 'out') return m >= toMin(17, 0) || m <= toMin(3, 59);
+  if (shift.is_overnight) return m >= shift.outWinStart || m <= 239;
   return shift.outWin && m >= shift.outWin[0] && m <= shift.outWin[1];
 }
 
@@ -146,6 +173,10 @@ export default function ValetPage() {
   const [now, setNow] = useState(new Date());
   const videoRef = useRef(null);
   const cameraStreamRef = useRef(null);
+  const locationsRef = useRef([]);
+  const lastGpsPosRef = useRef(null);
+  const [locations, setLocations] = useState([]);
+  const [shifts, setShifts] = useState([]);
   const [cameraStreamTick, setCameraStreamTick] = useState(0);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraErr, setCameraErr] = useState(null);
@@ -277,11 +308,10 @@ export default function ValetPage() {
   // GPS state
   const [gpsState, setGpsState] = useState('idle');
   const [gpsDist, setGpsDist] = useState(null);
-  const [nearestOffice, setNearestOffice] = useState(null);
+  const [nearestOfficeLabel, setNearestOfficeLabel] = useState('-');
   const [, setGpsCoord] = useState(null);
   const [gpsRefreshKey, setGpsRefreshKey] = useState(0);
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
-  const nearestOfficeLabel = getOfficeLabel(nearestOffice);
 
   const displayName = titleCase(profile?.full_name || profile?.name || authUser?.full_name || authUser?.name || 'User');
   const role = profile?.position || profile?.department || 'Karyawan';
@@ -299,6 +329,34 @@ export default function ValetPage() {
   const fetchShifts = useCallback(() => {
     api.get('/valet/today-shifts').then(r => setShiftData(r.data.data || {})).catch(() => { });
   }, []);
+
+  /* ── Fetch office locations from master ── */
+  useEffect(() => {
+    api.get('/locations').then(r => {
+      const locs = r.data.data || [];
+      setLocations(locs);
+      locationsRef.current = locs;
+    }).catch(() => {});
+  }, []);
+
+  /* ── Fetch shift definitions from master ── */
+  useEffect(() => {
+    api.get('/shifts/valet').then(r => {
+      setShifts(buildShiftsFromDB(r.data.data || []));
+    }).catch(() => {});
+  }, []);
+
+  /* ── Re-check GPS distance when locations load ── */
+  useEffect(() => {
+    if (locations.length > 0 && lastGpsPosRef.current) {
+      const { lat, lng } = lastGpsPosRef.current;
+      const officeInfo = getNearestOfficeInfo(lat, lng, locations);
+      setGpsDist(officeInfo.distance);
+      setNearestOfficeLabel(officeInfo.label);
+      setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+      setGpsRefreshing(false);
+    }
+  }, [locations]);
 
   useEffect(() => {
     api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
@@ -326,12 +384,16 @@ export default function ValetPage() {
     const onSuccess = (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      const officeInfo = getNearestOfficeInfo(lat, lng);
+      lastGpsPosRef.current = { lat, lng };
       setGpsCoord({ lat, lng });
-      setGpsDist(officeInfo.distance);
-      setNearestOffice(officeInfo.officeId);
-      setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
-      setGpsRefreshing(false);
+      const locs = locationsRef.current;
+      if (locs.length > 0) {
+        const officeInfo = getNearestOfficeInfo(lat, lng, locs);
+        setGpsDist(officeInfo.distance);
+        setNearestOfficeLabel(officeInfo.label);
+        setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+        setGpsRefreshing(false);
+      }
     };
 
     const onError = (err) => {
@@ -387,7 +449,13 @@ export default function ValetPage() {
       return;
     }
 
-    const officeInfo = getNearestOfficeInfo(coord.lat, coord.lng);
+    const locs = locationsRef.current;
+    if (locs.length === 0) {
+      setMsgs(prev => ({ ...prev, [msgKey]: { text: 'Data lokasi belum tersedia, coba refresh halaman.', type: 'error' } }));
+      setLoadingShift(null);
+      return;
+    }
+    const officeInfo = getNearestOfficeInfo(coord.lat, coord.lng, locs);
     const dist = officeInfo.distance;
     if (dist > MAX_DIST_M) {
       setMsgs(prev => ({
@@ -490,12 +558,13 @@ export default function ValetPage() {
 
   /* ── Active shift window label ── */
   const activeWindowLabel = (() => {
+    if (shifts.length === 0) return null;
     const m = getCurrentMin();
-    for (const s of SHIFTS) {
+    for (const s of shifts) {
       if (m >= s.inWin[0] && m <= s.inWin[1]) return `Shift ${s.label} — Jam Masuk`;
-      if (s.outWin && m >= s.outWin[0] && m <= s.outWin[1]) return `Shift ${s.label} — Jam Keluar`;
+      if (s.is_overnight && (m >= s.outWinStart || m <= 239)) return `Shift ${s.label} — Jam Keluar`;
+      if (!s.is_overnight && s.outWin && m >= s.outWin[0] && m <= s.outWin[1]) return `Shift ${s.label} — Jam Keluar`;
     }
-    if (m >= toMin(17, 0) || m <= toMin(3, 59)) return 'Shift Sore — Jam Keluar';
     return null;
   })();
 
@@ -762,11 +831,11 @@ export default function ValetPage() {
           {/* Section header */}
           <div className="flex items-center justify-between py-1 gap-2">
             <div className="text-[14px] font-extrabold text-teal-800 tracking-[-0.2px]">Absen Karyawan Valet</div>
-            <div className="text-[11px] font-semibold text-slate-400 whitespace-nowrap">{SHIFTS.length} shift hari ini</div>
+            <div className="text-[11px] font-semibold text-slate-400 whitespace-nowrap">{shifts.length} shift hari ini</div>
           </div>
 
           {/* Shift cards */}
-          {SHIFTS.map((shift, idx) => {
+          {shifts.map((shift, idx) => {
             const rec = shiftData[shift.key] || {};
             const hasIn = !!rec.check_in_time;
             const hasOut = !!rec.check_out_time;
