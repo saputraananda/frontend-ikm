@@ -4,7 +4,7 @@ import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
 
 /* ── Office location ─────────────────────────────────────────────── */
-const MAX_DIST_M = 200;
+const MAX_DIST_M = 100;
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
@@ -184,6 +184,8 @@ export default function AbsensiPage() {
   const [videoReady, setVideoReady] = useState(false);
   const [pendingPunch, setPendingPunch] = useState(null); // { shiftKey, punchType, coord, msgKey, officeLabel }
   const [photoPreview, setPhotoPreview] = useState(null); // { url, title }
+  const [confirmDelete, setConfirmDelete] = useState(null); // { shiftKey, punchType, label }
+  const [deletingPunch, setDeletingPunch] = useState(null);
 
   /* ── Cross-check warning state ── */
   const [crossWarning, setCrossWarning] = useState(false);
@@ -337,6 +339,12 @@ export default function AbsensiPage() {
   const fetchShifts = useCallback(() => {
     api.get('/attendance/today-shifts').then(r => setShiftData(r.data.data || {})).catch(() => { });
   }, []);
+
+  /* ── Auto-refresh shift data every 60 s (window open/close without reload) ── */
+  useEffect(() => {
+    const t = setInterval(() => fetchShifts(), 60_000);
+    return () => clearInterval(t);
+  }, [fetchShifts]);
 
   /* ── Fetch office locations from master ── */
   useEffect(() => {
@@ -559,6 +567,22 @@ export default function AbsensiPage() {
     setPhotoPreview(null);
   }, []);
 
+  const handleDeletePunch = useCallback(async () => {
+    if (!confirmDelete) return;
+    const { shiftKey, punchType } = confirmDelete;
+    const msgKey = `${shiftKey}-${punchType}`;
+    setDeletingPunch(msgKey);
+    try {
+      await api.post('/attendance/delete-punch', { shift_type: shiftKey, punch_type: punchType });
+      setMsgs(prev => ({ ...prev, [msgKey]: { text: 'Absensi dihapus. Silakan absen ulang.', type: 'error' } }));
+      fetchShifts();
+    } catch (e) {
+      setMsgs(prev => ({ ...prev, [msgKey]: { text: e.response?.data?.message || 'Gagal menghapus absensi', type: 'error' } }));
+    }
+    setDeletingPunch(null);
+    setConfirmDelete(null);
+  }, [confirmDelete, fetchShifts]);
+
   /* ── GPS badge ── */
   const gpsBadge = () => {
     if (gpsRefreshing || gpsState === 'loading')
@@ -747,6 +771,41 @@ export default function AbsensiPage() {
           </div>
         )}
 
+        {/* Delete punch confirmation modal */}
+        {confirmDelete && (
+          <div className="fixed inset-0 z-[65] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-[340px] bg-white rounded-[20px] overflow-hidden shadow-[0_16px_64px_rgba(0,0,0,.3)]">
+              <div className="px-5 pt-5 pb-3 text-center">
+                <div className="w-14 h-14 rounded-[16px] bg-red-50 border-2 border-red-200 grid place-items-center mx-auto mb-3">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                  </svg>
+                </div>
+                <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Hapus & Ulang Absen?</div>
+                <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
+                  Data absen <span className="font-bold text-slate-700">{confirmDelete.label}</span> akan dihapus.
+                  Anda perlu foto selfie ulang. Lanjutkan?
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-2">
+                <button
+                  className="h-[42px] rounded-[12px] border border-slate-200 bg-white text-slate-700 text-[12.5px] font-extrabold transition hover:bg-slate-50 cursor-pointer"
+                  onClick={() => setConfirmDelete(null)}
+                >
+                  Batal
+                </button>
+                <button
+                  className="h-[42px] rounded-[12px] bg-red-500 text-white text-[12.5px] font-extrabold transition hover:bg-red-600 disabled:opacity-50 cursor-pointer"
+                  onClick={handleDeletePunch}
+                  disabled={!!deletingPunch}
+                >
+                  {deletingPunch ? 'Menghapus...' : 'Ya, Hapus'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Photo preview modal */}
         {photoPreview && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-3 py-4"
@@ -867,6 +926,9 @@ export default function AbsensiPage() {
             const inRange = gpsState === 'ok';
             const isActiveWin = winIn || winOut;
             const checkInPhotoUrl = rec.check_in_photo_url || null;
+            const checkOutPhotoUrl = rec.check_out_photo_url || null;
+            const canRetryIn = !hasOut && winIn;   // Ulang masuk: hanya saat window masuk masih buka
+            const canRetryOut = winOut;            // Ulang keluar: hanya saat window keluar masih buka
 
             const badgeStyle = hasOut
               ? 'bg-emerald-50 text-emerald-800'
@@ -926,17 +988,31 @@ export default function AbsensiPage() {
                       }
                     </div>
                     {hasIn && checkInPhotoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => openPhotoPreview(checkInPhotoUrl, `Foto Masuk Shift ${shift.label}`)}
-                        className="mt-1.5 w-full h-[30px] rounded-[9px] border border-blue-200 bg-blue-50 text-blue-700 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1.5 transition hover:bg-blue-100 active:scale-[.98]"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1.5 10s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5z" />
-                          <circle cx="10" cy="10" r="2.4" />
-                        </svg>
-                        Lihat Foto
-                      </button>
+                      <div className={`mt-1.5 ${canRetryIn ? 'grid grid-cols-2 gap-1.5' : ''}`}>
+                        <button
+                          type="button"
+                          onClick={() => openPhotoPreview(checkInPhotoUrl, `Foto Masuk Shift ${shift.label}`)}
+                          className={`h-[30px] rounded-[9px] border border-blue-200 bg-blue-50 text-blue-700 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1 transition hover:bg-blue-100 active:scale-[.98] ${canRetryIn ? '' : 'w-full'}`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1.5 10s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5z" />
+                            <circle cx="10" cy="10" r="2.4" />
+                          </svg>
+                          Lihat Foto
+                        </button>
+                        {canRetryIn && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({ shiftKey: shift.key, punchType: 'in', label: `Masuk Shift ${shift.label}` })}
+                            className="h-[30px] rounded-[9px] border border-red-200 bg-red-50 text-red-600 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1 transition hover:bg-red-100 active:scale-[.98]"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3,6 5,6 17,6"/><path d="M16 6l-.867 11.142A2 2 0 0113.138 19H6.862a2 2 0 01-1.995-1.858L4 6"/>
+                            </svg>
+                            Ulang
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -964,6 +1040,33 @@ export default function AbsensiPage() {
                           : <button className="w-full h-[34px] rounded-[10px] bg-slate-50 text-slate-300 border border-slate-100 text-[11.5px] font-bold flex items-center justify-center" disabled>Keluar</button>
                       }
                     </div>
+                    {hasOut && checkOutPhotoUrl && (
+                      <div className={`mt-1.5 ${canRetryOut ? 'grid grid-cols-2 gap-1.5' : ''}`}>
+                        <button
+                          type="button"
+                          onClick={() => openPhotoPreview(checkOutPhotoUrl, `Foto Keluar Shift ${shift.label}`)}
+                          className={`h-[30px] rounded-[9px] border border-blue-200 bg-blue-50 text-blue-700 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1 transition hover:bg-blue-100 active:scale-[.98] ${canRetryOut ? '' : 'w-full'}`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1.5 10s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5z" />
+                            <circle cx="10" cy="10" r="2.4" />
+                          </svg>
+                          Lihat Foto
+                        </button>
+                        {canRetryOut && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({ shiftKey: shift.key, punchType: 'out', label: `Keluar Shift ${shift.label}` })}
+                            className="h-[30px] rounded-[9px] border border-red-200 bg-red-50 text-red-600 text-[10.5px] font-bold tracking-[.02em] flex items-center justify-center gap-1 transition hover:bg-red-100 active:scale-[.98]"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3,6 5,6 17,6"/><path d="M16 6l-.867 11.142A2 2 0 0113.138 19H6.862a2 2 0 01-1.995-1.858L4 6"/>
+                            </svg>
+                            Ulang
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

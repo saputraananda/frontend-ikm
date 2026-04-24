@@ -20,10 +20,10 @@ function ProgressRing({ done, total, size = 56 }) {
     return (
         <svg width={size} height={size} style={{ flexShrink: 0 }}>
             <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
-                <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke}/>
-                <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth={stroke} />
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#fff" strokeWidth={stroke}
                     strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset .6s ease' }}/>
+                    style={{ transition: 'stroke-dashoffset .6s ease' }} />
             </g>
             <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" dy="0.02em" fill="#fff"
                 fontSize="14" fontWeight="800">
@@ -35,46 +35,58 @@ function ProgressRing({ done, total, size = 56 }) {
 
 const IconHome = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M7.5 18V12.5h5V18"/>
+        <path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" /><path d="M7.5 18V12.5h5V18" />
     </svg>
 );
 const IconHistory = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="14" height="13" rx="2"/>
-        <line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2" x2="7" y2="5"/><line x1="13" y1="2" x2="13" y2="5"/>
+        <rect x="3" y="4" width="14" height="13" rx="2" />
+        <line x1="3" y1="8" x2="17" y2="8" /><line x1="7" y1="2" x2="7" y2="5" /><line x1="13" y1="2" x2="13" y2="5" />
     </svg>
 );
 const IconUser = () => (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="10" cy="7" r="4"/><path d="M3 17c0-3 3.13-5 7-5s7 2 7 5"/>
+        <circle cx="10" cy="7" r="4" /><path d="M3 17c0-3 3.13-5 7-5s7 2 7 5" />
     </svg>
 );
 
 const MENU_ITEMS = [
-    { key: 'absensi', label: 'Absensi', to: '/attendance',
-      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>,
-      bg: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)' },
-    { key: 'valet', label: 'Valet', to: '/valet',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16v3"/><path d="M19 16v3"/><path d="M2 12h20"/><path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12"/><circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/></svg>,
-        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
-    { key: 'izin-cuti', label: 'Izin / Cuti', to: '/leave',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="12" y1="14" x2="12" y2="19"/><line x1="8" y1="17" x2="16" y2="17"/></svg>,
-        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)' },
-    { key: 'deputi', label: 'Deputi', to: '/leader',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M18 3l2 2-6 6"/></svg>,
-        bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)' },
-    { key: 'leader', label: 'Leader', to: '/leader',
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>,
-        bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)' },
-    { key: 'kasbon', label: 'Kasbon', to: null,
-        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="12" cy="15" r="2"/><path d="M6 15h.01M18 15h.01"/></svg>,
-        bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)' },
+    {
+        key: 'absensi', label: 'Absensi', to: '/attendance',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>,
+        bg: 'linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%)'
+    },
+    {
+        key: 'valet', label: 'Valet', to: '/valet',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16v3" /><path d="M19 16v3" /><path d="M2 12h20" /><path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12" /><circle cx="7" cy="16" r="1.5" /><circle cx="17" cy="16" r="1.5" /></svg>,
+        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)'
+    },
+    {
+        key: 'izin-cuti', label: 'Izin / Cuti', to: '/leave',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="14" x2="16" y2="14" /><line x1="12" y1="14" x2="12" y2="19" /><line x1="8" y1="17" x2="16" y2="17" /></svg>,
+        bg: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)'
+    },
+    {
+        key: 'deputi', label: 'Deputi', to: '/leader',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /><path d="M18 3l2 2-6 6" /></svg>,
+        bg: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)'
+    },
+    {
+        key: 'leader', label: 'Leader', to: '/leader',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14,2 14,8 20,8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10,9 9,9 8,9" /></svg>,
+        bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)'
+    },
+    {
+        key: 'kasbon', label: 'Kasbon', to: null,
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2" /><path d="M2 10h20" /><circle cx="12" cy="15" r="2" /><path d="M6 15h.01M18 15h.01" /></svg>,
+        bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)'
+    },
 ];
 
 const SHIFT_META = {
-    pagi:   { label: 'Pagi',   bg: '#FFFBEB', icon: '🌅' },
-    siang:  { label: 'Siang',  bg: '#EFF6FF', icon: '☀️' },
-    sore:   { label: 'Sore',   bg: '#F5F3FF', icon: '🌆' },
+    pagi: { label: 'Pagi', bg: '#FFFBEB', icon: '🌅' },
+    siang: { label: 'Siang', bg: '#EFF6FF', icon: '☀️' },
+    sore: { label: 'Sore', bg: '#F5F3FF', icon: '🌆' },
     lembur: { label: 'Lembur', bg: '#FFF1F2', icon: '🌙' },
 };
 
@@ -91,8 +103,8 @@ export default function HomePage() {
 
     useEffect(() => { document.title = 'Beranda | IKM Mobile'; }, []);
     useEffect(() => {
-        api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => {});
-        api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => {});
+        api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
+        api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => { });
     }, []);
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
@@ -151,9 +163,9 @@ export default function HomePage() {
                         <Link to="/about" className="w-[38px] h-[38px] rounded-[12px] bg-white/10 border border-white/12 text-white grid place-items-center cursor-pointer transition hover:bg-white/20 backdrop-blur-xl flex-shrink-0"
                             aria-label="Tentang Aplikasi">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="9"/>
-                                <line x1="12" y1="8" x2="12" y2="8.5" strokeWidth="2.5"/>
-                                <line x1="12" y1="12" x2="12" y2="17"/>
+                                <circle cx="12" cy="12" r="9" />
+                                <line x1="12" y1="8" x2="12" y2="8.5" strokeWidth="2.5" />
+                                <line x1="12" y1="12" x2="12" y2="17" />
                             </svg>
                         </Link>
                     </div>
@@ -165,7 +177,14 @@ export default function HomePage() {
                             <div className="font-mono text-[28px] font-bold text-white tracking-[-1px] mt-1 leading-[1.1]">{liveTime}</div>
                             <div className="text-[12px] text-white/45 font-medium mt-1.5">{DAYS_ID[now.getDay()]}, {now.getDate()} {MONTHS_ID[now.getMonth()]} {now.getFullYear()}</div>
                         </div>
-                        {shiftSummary && <ProgressRing done={shiftSummary.done} total={shiftSummary.total} />}
+
+                        {/* Logo IKM */}
+                        <img
+                            src="/src/assets/ikm.png"
+                            alt="Logo IKM"
+                            className="w-[82px] h-[82px] object-contain opacity-80 flex-shrink-0"
+                            draggable={false}
+                        />
                     </div>
                 </div>
 
@@ -186,7 +205,7 @@ export default function HomePage() {
                                     </Link>
                                 ) : (
                                     <button key={item.key}
-                                        onClick={() => {}}
+                                        onClick={() => { }}
                                         className="flex flex-col items-center gap-2 py-3.5 px-1.5 rounded-[16px] bg-transparent border-none font-[inherit] cursor-pointer transition hover:bg-slate-50 hover:-translate-y-0.5 active:scale-[.95]">
                                         <div className="w-[50px] h-[50px] rounded-[16px] grid place-items-center flex-shrink-0"
                                             style={{ background: item.bg }}>{item.icon}</div>
@@ -207,7 +226,7 @@ export default function HomePage() {
                                 style={{ background: 'radial-gradient(circle, rgba(59,130,246,.22) 0%, transparent 70%)' }} />
                             <div className="relative z-[1] w-10 h-10 rounded-[12px] bg-blue-500/15 border border-blue-500/25 grid place-items-center flex-shrink-0">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                                    <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
                                 </svg>
                             </div>
                             <div className="relative z-[1]">
@@ -224,9 +243,9 @@ export default function HomePage() {
                                 style={{ background: 'radial-gradient(circle, rgba(16,185,129,.22) 0%, transparent 70%)' }} />
                             <div className="relative z-[1] w-10 h-10 rounded-[12px] bg-emerald-400/15 border border-emerald-400/25 grid place-items-center flex-shrink-0">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M5 16v3"/><path d="M19 16v3"/><path d="M2 12h20"/>
-                                    <path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12"/>
-                                    <circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/>
+                                    <path d="M5 16v3" /><path d="M19 16v3" /><path d="M2 12h20" />
+                                    <path d="M6 12l1.5-4.5A2 2 0 019.4 6h5.2a2 2 0 011.9 1.5L18 12" />
+                                    <circle cx="7" cy="16" r="1.5" /><circle cx="17" cy="16" r="1.5" />
                                 </svg>
                             </div>
                             <div className="relative z-[1]">
@@ -247,20 +266,20 @@ export default function HomePage() {
                             <div className="flex flex-col gap-2">
                                 {shiftSummary.keys.map(k => {
                                     const s = shiftSummary.todayShifts[k];
-                                    const hasIn  = s?.check_in_time;
+                                    const hasIn = s?.check_in_time;
                                     const hasOut = s?.check_out_time;
                                     const isComplete = hasIn && hasOut;
                                     const meta = SHIFT_META[k];
-                                    const inTime  = hasIn  ? formatShiftTime(s.check_in_time)  : null;
+                                    const inTime = hasIn ? formatShiftTime(s.check_in_time) : null;
                                     const outTime = hasOut ? formatShiftTime(s.check_out_time) : null;
 
-                                    const barColor    = isComplete ? 'bg-emerald-400' : hasIn ? 'bg-amber-400' : 'bg-slate-200';
+                                    const barColor = isComplete ? 'bg-emerald-400' : hasIn ? 'bg-amber-400' : 'bg-slate-200';
                                     const borderColor = isComplete ? 'border-emerald-100' : hasIn ? 'border-amber-100' : 'border-transparent';
-                                    const badgeClass  = isComplete
+                                    const badgeClass = isComplete
                                         ? 'bg-emerald-50 text-emerald-800'
                                         : hasIn
-                                        ? 'bg-amber-50 text-amber-700'
-                                        : 'bg-slate-100 text-slate-400';
+                                            ? 'bg-amber-50 text-amber-700'
+                                            : 'bg-slate-100 text-slate-400';
 
                                     return (
                                         <div key={k} className={`relative overflow-hidden flex items-center gap-3 px-4 py-3.5 bg-white rounded-[16px] border shadow-[0_1px_3px_rgba(0,0,0,.04)] transition ${borderColor}`}>
@@ -273,7 +292,7 @@ export default function HomePage() {
                                                 <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-0.5">
                                                     {hasIn ? (
                                                         <>
-                                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="10" cy="10" r="7"/><polyline points="10,6 10,10 13,12"/></svg>
+                                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="10" cy="10" r="7" /><polyline points="10,6 10,10 13,12" /></svg>
                                                             <span className="font-mono text-[10.5px] font-semibold">{inTime}</span>
                                                             {outTime
                                                                 ? <><span className="text-slate-300">→</span><span className="font-mono text-[10.5px] font-semibold">{outTime}</span></>
@@ -285,9 +304,9 @@ export default function HomePage() {
                                             </div>
                                             <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 ${badgeClass}`}>
                                                 {isComplete ? (
-                                                    <><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3,8 6.5,11.5 13,5"/></svg>Hadir</>
+                                                    <><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3,8 6.5,11.5 13,5" /></svg>Hadir</>
                                                 ) : hasIn ? (
-                                                    <><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="8,3 8,8"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>Masuk</>
+                                                    <><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="8,3 8,8" /><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none" /></svg>Masuk</>
                                                 ) : 'Belum'}
                                             </span>
                                         </div>
@@ -298,10 +317,10 @@ export default function HomePage() {
                             <div className="bg-white rounded-[20px] px-5 py-8 text-center shadow-[0_1px_4px_rgba(0,0,0,.04),0_0_0_1px_rgba(0,0,0,.03)]">
                                 <div className="w-16 h-16 rounded-[20px] bg-slate-50 grid place-items-center mx-auto mb-3.5">
                                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="3" y="4" width="18" height="16" rx="2"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                        <line x1="9" y1="2" x2="9" y2="6"/>
-                                        <line x1="15" y1="2" x2="15" y2="6"/>
+                                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                        <line x1="9" y1="2" x2="9" y2="6" />
+                                        <line x1="15" y1="2" x2="15" y2="6" />
                                     </svg>
                                 </div>
                                 <div className="text-[14px] font-extrabold text-slate-800 mb-1">Belum Ada Absensi</div>
