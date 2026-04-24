@@ -180,7 +180,7 @@ export default function HomePage() {
 
                         {/* Logo IKM */}
                         <img
-                            src="/src/assets/ikm.png"
+                            src="public/ikm.png"
                             alt="Logo IKM"
                             className="w-[82px] h-[82px] object-contain opacity-80 flex-shrink-0"
                             draggable={false}
