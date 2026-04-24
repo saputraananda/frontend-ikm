@@ -96,6 +96,7 @@ export default function HomePage() {
     const [profile, setProfile] = useState(authUser || null);
     const [now, setNow] = useState(new Date());
     const [todayShifts, setTodayShifts] = useState(null);
+    const [leaderRole, setLeaderRole] = useState(null); // null | 'leader' | 'deputi' | 'management'
 
     const displayName = titleCase(profile?.full_name || profile?.name || authUser?.full_name || authUser?.name || 'User');
     const role = profile?.position || profile?.department || 'Karyawan';
@@ -105,6 +106,7 @@ export default function HomePage() {
     useEffect(() => {
         api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
         api.get('/attendance/today-shifts').then(r => setTodayShifts(r.data.data || {})).catch(() => { });
+        api.get('/auth/leader-role').then(r => setLeaderRole(r.data?.data?.role || null)).catch(() => { });
     }, []);
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000);
@@ -152,8 +154,11 @@ export default function HomePage() {
                     {/* Top row */}
                     <div className="relative z-[1] flex items-center justify-between px-5 pt-4">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-[46px] h-[46px] rounded-[14px] bg-white/15 border-2 border-white/25 text-white text-[14px] font-extrabold grid place-items-center flex-shrink-0 backdrop-blur-xl">
-                                {initials(displayName)}
+                            <div className="w-[46px] h-[46px] rounded-[14px] bg-white/15 border-2 border-white/25 text-white text-[14px] font-extrabold grid place-items-center flex-shrink-0 backdrop-blur-xl overflow-hidden">
+                                {profile?.profile_url
+                                    ? <img src={profile.profile_url} alt="foto" className="w-full h-full object-cover" />
+                                    : initials(displayName)
+                                }
                             </div>
                             <div className="min-w-0 overflow-hidden">
                                 <div className="text-[15px] font-extrabold text-white truncate tracking-[-0.2px]">{displayName}</div>
@@ -254,6 +259,38 @@ export default function HomePage() {
                             </div>
                         </Link>
                     </div>
+
+                    {/* Absensi Management card — only for management role */}
+                    {leaderRole === 'management' && (
+                        <div className="px-4 pt-3">
+                            <Link to="/management-attendance"
+                                className="relative overflow-hidden rounded-[20px] px-4 py-5 flex items-center gap-4 no-underline cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(76,29,149,.35)] active:scale-[.97] shadow-[0_6px_20px_rgba(76,29,149,.22)]"
+                                style={{ background: 'linear-gradient(135deg, #2E1065 0%, #4C1D95 45%, #7C3AED 100%)' }}>
+                                {/* Glow blob */}
+                                <div className="absolute -top-5 -right-5 w-[100px] h-[100px] rounded-full pointer-events-none"
+                                    style={{ background: 'radial-gradient(circle, rgba(167,139,250,.25) 0%, transparent 70%)' }} />
+                                {/* Icon */}
+                                <div className="relative z-[1] w-12 h-12 rounded-[14px] bg-white/15 border border-white/20 grid place-items-center flex-shrink-0">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="8" r="4" />
+                                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                                        <path d="M18 3l2 2-5 5" />
+                                    </svg>
+                                </div>
+                                {/* Text */}
+                                <div className="relative z-[1] flex-1 min-w-0">
+                                    <div className="text-[14px] font-extrabold text-white leading-snug tracking-[-0.2px]">Absensi Management</div>
+                                    <div className="text-[11px] text-white/55 font-medium mt-0.5 leading-snug">Absen Spesial Untuk Tim Manajemen IKM Tercinta</div>
+                                </div>
+                                {/* Arrow */}
+                                <div className="relative z-[1] flex-shrink-0">
+                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="7,4 13,10 7,16" />
+                                    </svg>
+                                </div>
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Shift timeline */}
                     <div className="px-4 pt-[18px] animate-fade-up">

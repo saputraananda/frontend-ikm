@@ -71,8 +71,11 @@ export default function ProfilePage() {
           <div className="absolute -bottom-[30px] -left-[30px] w-[120px] h-[120px] rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(139,92,246,.15) 0%, transparent 70%)' }} />
 
-          <div className="relative z-[1] w-[72px] h-[72px] rounded-[20px] bg-white/15 border-[2.5px] border-white/25 text-white text-[22px] font-extrabold grid place-items-center shadow-[0_8px_24px_rgba(0,0,0,.2)] backdrop-blur-[8px]">
-            {initials(name)}
+          <div className="relative z-[1] w-[72px] h-[72px] rounded-[20px] bg-white/15 border-[2.5px] border-white/25 text-white text-[22px] font-extrabold grid place-items-center shadow-[0_8px_24px_rgba(0,0,0,.2)] backdrop-blur-[8px] overflow-hidden">
+            {p.profile_url
+              ? <img src={p.profile_url} alt="foto" className="w-full h-full object-cover" />
+              : initials(name)
+            }
           </div>
           <div className="relative z-[1] text-center">
             <div className="text-[17px] font-extrabold text-white">{name}</div>
@@ -83,6 +86,14 @@ export default function ProfilePage() {
               {p.role}
             </div>
           )}
+          {/* Edit button */}
+          <Link to="/profile/edit"
+            className="relative z-[1] mt-1 h-9 px-5 rounded-full bg-white/15 border border-white/20 text-white text-[12px] font-bold flex items-center gap-1.5 no-underline transition hover:bg-white/25 backdrop-blur-xl">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.5 2.5l4 4L6 18H2v-4L13.5 2.5z"/>
+            </svg>
+            Edit Profil
+          </Link>
         </div>
 
         {/* ── Content ── */}
