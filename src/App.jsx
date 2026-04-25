@@ -31,7 +31,7 @@ export default function App() {
   const token = useAuthStore((state) => state.token);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/profile">
       <ScrollToTop />
       <Routes>
         <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage />} />
