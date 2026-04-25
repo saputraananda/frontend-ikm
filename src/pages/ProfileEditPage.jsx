@@ -201,19 +201,31 @@ export default function ProfileEditPage() {
 
     const handleUpload = async (docKey, file) => {
         setUploading(docKey);
+
+        // Tampilkan preview foto profil langsung dari file lokal
+        let objectUrl = null;
+        if (docKey === 'profile') {
+            objectUrl = URL.createObjectURL(file);
+            setDetail(prev => ({ ...prev, profile_url: objectUrl }));
+        }
+
         try {
             const fd = new FormData();
             fd.append('doc', file);
-            const r = await api.post(`/employee/upload-doc/${docKey}`, fd, {
+            await api.post(`/employee/upload-doc/${docKey}`, fd, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            /* Update local url */
-            const urlKey = `${docKey}_url`;
-            setDetail(prev => ({ ...prev, [urlKey]: r.data.data?.url }));
+            // Re-fetch agar URL dari server (absolut & benar) menggantikan object URL
+            const r2 = await api.get('/employee/profile-detail');
+            setDetail(r2.data.data || {});
             showToast(`${file.name} berhasil diunggah.`);
         } catch (e) {
+            if (objectUrl) setDetail(prev => ({ ...prev, profile_url: null }));
             showToast(e.response?.data?.message || 'Gagal mengunggah file.', false);
+        } finally {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
         }
+
         setUploading(null);
     };
 

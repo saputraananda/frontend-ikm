@@ -13,8 +13,9 @@
   html, body, #root { height: 100%; }
 }
 
-/* ── CSS Variables (used by ReportLeader form styles) ── */
+/* ── CSS Variables + force light mode ── */
 :root {
+  color-scheme: light;
   --n-900: #0F172A; --n-800: #1E293B; --n-700: #334155;
   --n-500: #64748B; --n-400: #94A3B8; --n-200: #E2E8F0;
   --n-100: #F1F5F9; --n-50:  #F8FAFC; --white: #FFFFFF;

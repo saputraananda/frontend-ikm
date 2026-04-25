@@ -68,6 +68,7 @@ export default function ManagementAbsensiPage() {
     const [cameraOpen, setCameraOpen] = useState(false);
     const [cameraErr, setCameraErr] = useState(null);
     const [videoReady, setVideoReady] = useState(false);
+    const [facingMode, setFacingMode] = useState('user');
     const [pendingPunch, setPendingPunch] = useState(null); // { punchType }
 
     /* ── Messages per punch ───────────────────────────────────────── */
@@ -99,7 +100,7 @@ export default function ManagementAbsensiPage() {
         setVideoReady(false);
     }, []);
 
-    const openCamera = useCallback(async () => {
+    const openCamera = useCallback(async (mode = 'user') => {
         setCameraErr(null);
         setVideoReady(false);
         if (!canUseCamera) { setCameraErr('Browser tidak mendukung kamera.'); return false; }
@@ -108,8 +109,8 @@ export default function ManagementAbsensiPage() {
         try {
             setCameraOpen(true);
             let stream;
-            try { stream = await getStream({ facingMode: { exact: 'user' } }); }
-            catch { try { stream = await getStream({ facingMode: { exact: 'environment' } }); } catch { stream = await getStream(true); } }
+            try { stream = await getStream({ facingMode: { exact: mode } }); }
+            catch { try { stream = await getStream({ facingMode: mode }); } catch { stream = await getStream(true); } }
             cameraStreamRef.current = stream;
             setCameraStreamTick(v => v + 1);
             return true;
@@ -122,6 +123,24 @@ export default function ManagementAbsensiPage() {
             return false;
         }
     }, [canUseCamera]);
+
+    const switchCamera = useCallback(async () => {
+        const next = facingMode === 'user' ? 'environment' : 'user';
+        setFacingMode(next);
+        stopCamera();
+        setCameraErr(null);
+        setVideoReady(false);
+        const getStream = c => navigator.mediaDevices.getUserMedia({ video: c, audio: false });
+        try {
+            let stream;
+            try { stream = await getStream({ facingMode: { exact: next } }); }
+            catch { stream = await getStream(true); }
+            cameraStreamRef.current = stream;
+            setCameraStreamTick(v => v + 1);
+        } catch {
+            setCameraErr('Gagal beralih kamera.');
+        }
+    }, [facingMode, stopCamera]);
 
     /* Attach stream when modal + video are ready */
     useEffect(() => {
@@ -147,7 +166,10 @@ export default function ManagementAbsensiPage() {
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
         ctx.drawImage(v, 0, 0, w, h);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         const stamp = formatStamp(new Date());
         const locationLine = 'Lokasi: IKM Management';
@@ -182,7 +204,7 @@ export default function ManagementAbsensiPage() {
         try {
             const r = await api.get('/management-attendance/today');
             setTodayData(r.data?.data || null);
-        } catch (_) { }
+        } catch { /* ignore */ }
     }, []);
 
     /* ── Init ───────────────────────────────────────────────────────── */
@@ -197,6 +219,7 @@ export default function ManagementAbsensiPage() {
     useEffect(() => {
         if (!checking && !denied) {
             api.get('/auth/profile').then(r => setProfile(r.data.data)).catch(() => { });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             fetchToday();
         }
     }, [checking, denied, fetchToday]);
@@ -213,7 +236,7 @@ export default function ManagementAbsensiPage() {
         setLoadingPunch(punchType);
 
         setPendingPunch({ punchType });
-        const ok = await openCamera();
+        const ok = await openCamera(facingMode);
         if (!ok) {
             setMsg({ text: 'Kamera tidak bisa dibuka. Izinkan akses kamera.', type: 'error' });
             setPendingPunch(null);
@@ -344,7 +367,19 @@ export default function ManagementAbsensiPage() {
                                         onLoadedMetadata={() => { setVideoReady(true); videoRef.current?.play?.().catch(() => { }); }}
                                         onCanPlay={() => setVideoReady(true)}
                                         className="w-full h-full object-cover"
+                                        style={{ transform: 'scaleX(-1)' }}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={switchCamera}
+                                        className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/50 grid place-items-center text-white"
+                                        aria-label="Ganti kamera"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M20 7h-3.5L14 4h-4L7.5 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/>
+                                            <circle cx="12" cy="13" r="3"/>
+                                        </svg>
+                                    </button>
                                     <div className="absolute left-3 bottom-3 text-white px-2.5 py-1.5 rounded-xl"
                                         style={{ background: 'rgba(0,0,0,0.55)' }}>
                                         <div className="text-[11px] font-extrabold">{formatStamp(now)}</div>

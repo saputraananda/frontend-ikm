@@ -231,51 +231,57 @@ export default function AboutAppPage() {
   // ── Data ──
   const steps = [
     'Login menggunakan akun yang diberikan perusahaan.',
-    'Di beranda, pilih menu sesuai kebutuhan: Absensi, Valet, Riwayat, atau Profil.',
-    'Aktifkan GPS/lokasi lalu buka halaman absensi yang sesuai.',
-    'Tekan Masuk saat mulai kerja dan Keluar saat selesai.',
-    'Cek menu Riwayat untuk memastikan data sudah tercatat benar.',
+    'Di beranda, pilih menu sesuai kebutuhan: Absensi, Valet, Management, Cuti/Izin, Kasbon, atau Profil.',
+    'Untuk absen — aktifkan GPS, lalu foto selfie dan tekan Masuk/Keluar sesuai shift.',
+    'Untuk cuti/izin/sakit — isi formulir pengajuan, lampirkan surat dokter jika sakit.',
+    'Untuk kasbon — isi jumlah dan keterangan, lalu tunggu persetujuan atasan.',
+    'Cek menu Riwayat untuk memastikan semua data sudah tercatat dengan benar.',
   ];
 
   const kegunaanItems = [
-    'Proses absen tanpa kertas, lebih cepat dan rapi.',
-    'Karyawan bisa cek status kehadiran kapan saja.',
-    'Atasan dapat melihat data kehadiran lebih terstruktur.',
-    'Mengurangi kesalahan catat karena tersimpan otomatis.',
+    'Absen shift harian berbasis GPS + selfie, tanpa kertas.',
+    'Absensi terpisah untuk tim Valet dan level Management.',
+    'Pengajuan cuti, izin, dan sakit langsung dari ponsel.',
+    'Pengajuan kasbon (uang muka) dengan alur persetujuan digital.',
+    'Manajemen dokumen karyawan: KTP, KK, NPWP, BPJS, ijazah, dll.',
+    'Update profil dan foto karyawan secara mandiri.',
   ];
 
   const kendalaItems = [
     'Tombol absen tidak aktif? Pastikan GPS & izin lokasi sudah menyala.',
+    'Selfie gagal? Pastikan izin kamera sudah diberikan di pengaturan.',
     'Data belum muncul? Refresh halaman lalu cek Riwayat.',
-    'Aplikasi force close? Bersihkan cache lalu buka ulang.',
+    'Pengajuan cuti/kasbon belum diproses? Hubungi atasan langsung.',
     'Masih bermasalah? Catat jam kejadian dan hubungi admin IT.',
   ];
 
   const faqItems = [
     {
       q: 'Apakah bisa absen dari rumah?',
-      a: 'Tidak. Sistem memverifikasi lokasi GPS — harus berada di area kantor yang sudah dikonfigurasi admin.',
+      a: 'Tidak. Sistem memverifikasi lokasi GPS — harus berada di area kerja yang sudah dikonfigurasi admin.',
     },
     {
-      q: 'Data absen tersimpan berapa lama?',
-      a: 'Riwayat tersimpan minimal 12 bulan dan dapat diakses kapan saja melalui menu Riwayat.',
+      q: 'Apa bedanya Absen Normal, Valet, dan Management?',
+      a: 'Absen Normal untuk karyawan umum, Valet khusus tim parkir/valet, Management untuk level pimpinan. Masing-masing punya alur dan tampilan berbeda.',
+    },
+    {
+      q: 'Bagaimana cara mengajukan cuti atau sakit?',
+      a: 'Buka menu Cuti/Izin, pilih jenis (cuti, izin, atau sakit), isi tanggal dan keterangan. Untuk sakit, lampirkan foto surat dokter.',
     },
     {
       q: 'Bagaimana jika lupa absen keluar?',
       a: 'Segera lapor ke atasan atau admin HRD untuk koreksi data pada hari yang sama.',
     },
     {
+      q: 'Bagaimana cara mengajukan kasbon?',
+      a: 'Buka menu Kasbon, isi nominal dan alasan pengajuan, lalu kirim. Status akan diperbarui setelah atasan menyetujui.',
+    },
+    {
       q: 'Apakah perlu koneksi internet?',
-      a: 'Ya, koneksi internet diperlukan untuk sinkronisasi data absensi ke server.',
+      a: 'Ya, koneksi internet diperlukan untuk absen, pengajuan, dan sinkronisasi data ke server.',
     },
   ];
 
-  const teamMembers = [
-    { initials: 'DEV', name: 'Tim Developer',  role: 'Pengembang aplikasi', color: 'purple' },
-    { initials: 'OPS', name: 'Operasional',    role: 'Koordinasi lapangan', color: 'green'  },
-    { initials: 'HRD', name: 'HRD',            role: 'Data kehadiran',      color: 'yellow' },
-    { initials: 'IT',  name: 'IT Support',     role: 'Kendala teknis',      color: 'orange' },
-  ];
 
   // ── Render ──
   return (
@@ -363,11 +369,11 @@ export default function AboutAppPage() {
           {/* 1. Apa itu IKM Mobile */}
           <SectionCard title="Apa itu IKM Mobile?" icon={<IconInfo />}>
             <p>
-              Aplikasi pendamping kerja harian untuk karyawan — membantu pencatatan kehadiran (absen),
-              melihat riwayat absen, dan mengisi formulir kantor secara digital.
+              Aplikasi kerja digital untuk karyawan PT Waschen Alora Indonesia — mencakup absensi harian,
+              pengajuan cuti/izin/sakit, kasbon, hingga pengelolaan data dan dokumen karyawan secara mandiri.
             </p>
             <InfoStrip>
-              Tersedia untuk Android. Dapat diakses juga via browser (website).
+              Dapat diakses via browser di ponsel maupun komputer. Tidak perlu instal aplikasi tambahan.
             </InfoStrip>
           </SectionCard>
 
@@ -393,26 +399,38 @@ export default function AboutAppPage() {
             </div>
           </SectionCard>
 
-          {/* 4. Absensi vs Valet */}
+          {/* 4. Fitur Utama */}
           <section className="bg-white rounded-[18px] p-[14px] border-[0.5px] border-black/[.06]">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-[9px] bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
                 <IconSplit />
               </div>
-              <h2 className="text-[13.5px] font-semibold text-slate-900 tracking-[-0.15px]">Absensi vs Valet</h2>
+              <h2 className="text-[13.5px] font-semibold text-slate-900 tracking-[-0.15px]">Fitur Utama</h2>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-[14px] bg-blue-50 border-[0.5px] border-blue-200 p-3">
-                <p className="text-[11px] font-semibold text-blue-700 mb-1.5">Absen Normal</p>
-                <p className="text-[11px] text-blue-900/70 leading-relaxed">
-                  Untuk alur kerja karyawan umum sehari-hari.
-                </p>
+                <p className="text-[11px] font-semibold text-blue-700 mb-1">Absen Normal</p>
+                <p className="text-[11px] text-blue-900/70 leading-relaxed">Selfie + GPS untuk karyawan shift harian.</p>
               </div>
               <div className="rounded-[14px] bg-cyan-50 border-[0.5px] border-cyan-200 p-3">
-                <p className="text-[11px] font-semibold text-cyan-700 mb-1.5">Absen Valet</p>
-                <p className="text-[11px] text-cyan-900/70 leading-relaxed">
-                  Khusus tim valet, tampilan dibedakan agar tidak tertukar.
-                </p>
+                <p className="text-[11px] font-semibold text-cyan-700 mb-1">Absen Valet</p>
+                <p className="text-[11px] text-cyan-900/70 leading-relaxed">Khusus tim valet, alur terpisah.</p>
+              </div>
+              <div className="rounded-[14px] bg-violet-50 border-[0.5px] border-violet-200 p-3">
+                <p className="text-[11px] font-semibold text-violet-700 mb-1">Absen Management</p>
+                <p className="text-[11px] text-violet-900/70 leading-relaxed">Untuk level pimpinan/management.</p>
+              </div>
+              <div className="rounded-[14px] bg-emerald-50 border-[0.5px] border-emerald-200 p-3">
+                <p className="text-[11px] font-semibold text-emerald-700 mb-1">Cuti / Izin / Sakit</p>
+                <p className="text-[11px] text-emerald-900/70 leading-relaxed">Pengajuan digital + upload surat dokter.</p>
+              </div>
+              <div className="rounded-[14px] bg-orange-50 border-[0.5px] border-orange-200 p-3">
+                <p className="text-[11px] font-semibold text-orange-700 mb-1">Kasbon</p>
+                <p className="text-[11px] text-orange-900/70 leading-relaxed">Pengajuan uang muka dengan alur persetujuan.</p>
+              </div>
+              <div className="rounded-[14px] bg-rose-50 border-[0.5px] border-rose-200 p-3">
+                <p className="text-[11px] font-semibold text-rose-700 mb-1">Edit Profil & Dokumen</p>
+                <p className="text-[11px] text-rose-900/70 leading-relaxed">Update data diri, rekening, KTP, BPJS, dll.</p>
               </div>
             </div>
           </section>
@@ -426,24 +444,61 @@ export default function AboutAppPage() {
             </div>
           </SectionCard>
 
-          {/* 6. Tim & Kontak */}
-          <SectionCard title="Tim & Kontak" icon={<IconTeam />}>
-            <div className="grid grid-cols-2 gap-1.5 mb-2.5">
-              {teamMembers.map((m) => (
-                <TeamCard key={m.initials} {...m} />
-              ))}
-            </div>
+          {/* 6. Leader & Deputi */}
+          <SectionCard title="Peran Leader & Deputi" icon={<IconTeam />}>
+            <p className="mb-2">
+              Akun dengan peran <strong>Leader</strong> atau <strong>Deputi</strong> memiliki akses ke dua menu khusus:
+            </p>
             <div className="flex flex-col gap-1.5">
-              <ContactRow
-                icon={<IconEmail />}
-                label="Email Support"
-                value="it.support@ikm-group.co.id"
-              />
-              <ContactRow
-                icon={<IconPhone />}
-                label="WhatsApp Admin"
-                value="+62 812-3456-7890 (Jam kerja)"
-              />
+              <div className="bg-blue-50 border-[0.5px] border-blue-200 rounded-[13px] px-3 py-[10px]">
+                <p className="text-[12px] font-semibold text-blue-800 mb-1">Pemeriksaan Linen PT IKM</p>
+                <p className="text-[11.5px] text-blue-900/70 leading-relaxed">
+                  Mencatat dan memvalidasi data linen yang masuk dan keluar — termasuk jumlah, kondisi, dan lokasi.
+                  Digunakan sebagai kontrol kualitas operasional laundry harian.
+                </p>
+              </div>
+              <div className="bg-emerald-50 border-[0.5px] border-emerald-200 rounded-[13px] px-3 py-[10px]">
+                <p className="text-[12px] font-semibold text-emerald-800 mb-1">Laporan Harian Leader</p>
+                <p className="text-[11.5px] text-emerald-900/70 leading-relaxed">
+                  Membuat dan mengirim laporan aktivitas harian kepada atasan — mencakup jenis laporan,
+                  prioritas, kategori kegiatan, deskripsi, dan penilaian kepuasan kerja.
+                </p>
+              </div>
+            </div>
+            <InfoStrip>
+              Menu Leader & Deputi hanya muncul jika akun sudah dikonfigurasi dengan peran tersebut oleh admin.
+            </InfoStrip>
+          </SectionCard>
+
+          {/* 7. Kontak */}
+          <SectionCard title="Hubungi Admin" icon={<IconTeam />}>
+            <div className="flex flex-col gap-1.5">
+              <a
+                href="https://wa.me/6287770597000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-[10px] bg-green-50 border-[0.5px] border-green-200 rounded-[13px] px-[10px] py-[9px] no-underline"
+              >
+                <div className="w-7 h-7 rounded-[8px] bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0">
+                  <IconPhone />
+                </div>
+                <div>
+                  <p className="text-[11.5px] font-medium text-slate-800 leading-tight">WhatsApp Admin</p>
+                  <p className="text-[10.5px] text-green-600 mt-[1px]">087770597000 · Klik untuk chat</p>
+                </div>
+              </a>
+              <a
+                href="mailto:it.support@ikmalora.com"
+                className="flex items-center gap-[10px] bg-blue-50 border-[0.5px] border-blue-200 rounded-[13px] px-[10px] py-[9px] no-underline"
+              >
+                <div className="w-7 h-7 rounded-[8px] bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                  <IconEmail />
+                </div>
+                <div>
+                  <p className="text-[11.5px] font-medium text-slate-800 leading-tight">Email IT Support</p>
+                  <p className="text-[10.5px] text-blue-500 mt-[1px]">it.support@ikmalora.com</p>
+                </div>
+              </a>
             </div>
           </SectionCard>
 
@@ -454,7 +509,7 @@ export default function AboutAppPage() {
 
           {/* Footer */}
           <div className="text-center py-2">
-            <p className="text-[10px] text-slate-400">IKM Mobile · v2.4.1 · © 2025 PT IKM Group</p>
+            <p className="text-[10px] text-slate-400">IKM Mobile · v1.0.0 · © 2025 PT Waschen Alora Indonesia</p>
             <p className="text-[9.5px] text-slate-300 mt-[3px]">Seluruh data dijaga kerahasiaannya</p>
           </div>
 
