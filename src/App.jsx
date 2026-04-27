@@ -7,7 +7,6 @@ import ValetPage from './pages/ValetPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import ProfileEditPage from './pages/ProfileEditPage';
-import ReportLeader from './pages/ReportLeader';
 import AboutAppPage from './pages/AboutAppPage';
 import LeavePage from './pages/LeavePage';
 import LeaderPage from './pages/LeaderPage';
@@ -41,7 +40,6 @@ export default function App() {
         <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
-        <Route path="/report" element={<ProtectedRoute><ReportLeader /></ProtectedRoute>} />
         <Route path="/leader" element={<ProtectedRoute><LeaderPage /></ProtectedRoute>} />
         <Route path="/linen-report" element={<ProtectedRoute><LinenReportPage /></ProtectedRoute>} />
         <Route path="/daily-report" element={<ProtectedRoute><DailyReportPage /></ProtectedRoute>} />

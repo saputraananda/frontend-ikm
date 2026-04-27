@@ -11,6 +11,7 @@ const FINDING_TYPES = [
     'Kancing hilang',
     'Resleting rusak',
     'Noda membandel (Sudah dispotting ttp tidak hilang)',
+    'Darah / cairan tubuh',
     'Luntur warna',
     'Tipis / aus',
     'Lainnya',
@@ -36,6 +37,7 @@ export default function LinenReportPage() {
     const [reportDate, setReportDate] = useState(todayStr());
     const [areaId, setAreaId] = useState('');
     const [hospitalId, setHospitalId] = useState('');
+    const [findingLocation, setFindingLocation] = useState('');
     const [linenType, setLinenType] = useState('');
     const [findingType, setFindingType] = useState('');
     const [findingOther, setFindingOther] = useState('');
@@ -47,15 +49,18 @@ export default function LinenReportPage() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
     useEffect(() => {
         document.title = 'Pemeriksaan Linen | IKM Mobile';
         Promise.all([
             api.get('/linen-report/areas'),
             api.get('/linen-report/hospitals'),
-        ]).then(([areasRes, hospitalsRes]) => {
+            api.get('/linen-report/check-today'),
+        ]).then(([areasRes, hospitalsRes, checkRes]) => {
             setAreas(areasRes.data?.data || []);
             setHospitals(hospitalsRes.data?.data || []);
+            if (checkRes.data?.data?.submitted) setShowDuplicateModal(true);
         }).catch(() => {});
     }, []);
 
@@ -81,6 +86,7 @@ export default function LinenReportPage() {
 
         if (!reporterName.trim()) return setSubmitError('Nama penemu wajib diisi.');
         if (!reportDate) return setSubmitError('Tanggal temuan wajib diisi.');
+        if (!findingLocation) return setSubmitError('Lokasi penemuan wajib dipilih.');
         if (!areaId) return setSubmitError('Divisi wajib dipilih.');
         if (!hospitalId) return setSubmitError('Rumah sakit wajib dipilih.');
         if (!linenType.trim()) return setSubmitError('Jenis linen wajib diisi.');
@@ -95,6 +101,7 @@ export default function LinenReportPage() {
             fd.append('report_date', reportDate);
             fd.append('area_id', areaId);
             fd.append('hospital_id', hospitalId);
+            fd.append('finding_location', findingLocation);
             fd.append('linen_type', linenType.trim());
             fd.append('finding_type', resolvedFinding);
             fd.append('finding_qty', String(findingQty));
@@ -114,6 +121,7 @@ export default function LinenReportPage() {
         setReportDate(todayStr());
         setAreaId('');
         setHospitalId('');
+        setFindingLocation('');
         setLinenType('');
         setFindingType('');
         setFindingOther('');
@@ -166,7 +174,7 @@ export default function LinenReportPage() {
 
                         {/* Section 1 – Identitas */}
                         <Section color="bg-blue-500" title="Identitas Pelapor">
-                            <Field label="Nama Penemu Temuan" required>
+                            <Field label="Nama Penemu Temuan (Karyawan IKM)" required>
                                 <input className={inputCls} type="text" placeholder="Masukkan nama lengkap"
                                     value={reporterName} onChange={e => setReporterName(e.target.value)} />
                             </Field>
@@ -178,6 +186,30 @@ export default function LinenReportPage() {
 
                         {/* Section 2 – Lokasi */}
                         <Section color="bg-emerald-500" title="Lokasi & Asal Linen">
+                            <Field label="Lokasi Penemuan" required>
+                                <div className="flex gap-2">
+                                    {['Rumah Sakit', 'IKM'].map(loc => (
+                                        <label key={loc}
+                                            className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-[12px] border cursor-pointer transition ${
+                                                findingLocation === loc
+                                                    ? 'border-emerald-400 bg-emerald-50'
+                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                                            }`}
+                                            onClick={() => setFindingLocation(loc)}>
+                                            <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 grid place-items-center transition ${
+                                                findingLocation === loc ? 'border-emerald-500' : 'border-slate-300'
+                                            }`}>
+                                                {findingLocation === loc && (
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                                )}
+                                            </div>
+                                            <span className={`text-[12.5px] font-medium ${
+                                                findingLocation === loc ? 'text-emerald-800' : 'text-slate-700'
+                                            }`}>{loc}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </Field>
                             <Field label="Divisi Penemuan" required>
                                 <select className={selectCls} style={selectStyle}
                                     value={areaId} onChange={e => setAreaId(e.target.value)}>
@@ -196,7 +228,7 @@ export default function LinenReportPage() {
 
                         {/* Section 3 – Detail Linen */}
                         <Section color="bg-violet-500" title="Detail Linen">
-                            <Field label="Jenis Linen" required hint="Contoh: Baju Scrub Dokter -S">
+                            <Field label="Jenis Linen (+ Sebutkan Ukurannya)" required hint="Contoh: Baju Scrub Dokter -S">
                                 <input className={inputCls} type="text" placeholder="Contoh: Baju Scrub Dokter -S"
                                     value={linenType} onChange={e => setLinenType(e.target.value)} />
                             </Field>
@@ -249,7 +281,7 @@ export default function LinenReportPage() {
 
                         {/* Section 5 – Lampiran */}
                         <Section color="bg-rose-500" title="Bukti Lampiran">
-                            <Field label="Foto Bukti (opsional)">
+                            <Field label="Foto Bukti (harap lampirkan foto yang jelas untuk memperlihatkan letak kerusakan)">
                                 <input type="file" ref={fileRef} accept="image/*" className="hidden"
                                     onChange={handleFileChange} />
                                 {attachmentPreview ? (
@@ -306,6 +338,34 @@ export default function LinenReportPage() {
                         </button>
                     </form>
                 </main>
+
+                {/* Duplicate submission warning */}
+                {showDuplicateModal && (
+                    <div className="fixed inset-0 z-[150] bg-black/50 backdrop-blur-[4px] grid place-items-center px-6">
+                        <div className="bg-white rounded-[24px] p-7 text-center max-w-[300px] w-full shadow-2xl">
+                            <div className="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-200 grid place-items-center mx-auto mb-4">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div className="text-[15px] font-bold text-slate-900 mb-2">Laporan Sudah Diisi</div>
+                            <p className="text-[12.5px] text-slate-500 leading-relaxed mb-5">
+                                Kamu sudah mengisi <span className="font-semibold text-slate-700">Pemeriksaan Linen</span> hari ini. Apakah kamu ingin mengisi ulang?
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                <button onClick={() => setShowDuplicateModal(false)}
+                                    className="w-full py-2.5 rounded-[12px] bg-amber-500 text-white text-[13px] font-bold cursor-pointer hover:bg-amber-600 transition">
+                                    Ya, Lanjutkan Isi
+                                </button>
+                                <button onClick={() => navigate(-1)}
+                                    className="w-full py-2.5 rounded-[12px] border border-slate-200 text-slate-600 text-[13px] font-semibold cursor-pointer hover:bg-slate-50 transition">
+                                    Batal, Kembali
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Success modal */}
                 {success && (

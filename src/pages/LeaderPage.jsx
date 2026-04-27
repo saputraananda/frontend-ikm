@@ -8,7 +8,7 @@ const MENU_ITEMS = [
     {
         key: 'linen',
         label: 'Pemeriksaan Linen PT IKM',
-        desc: 'Cek & validasi data linen yang masuk dan keluar',
+        desc: 'Form ini wajib diisi oleh petugas ketika menemukan linen kotor atau sebelum linen terkirim ke RS dari IKM Laundry.',
         to: '/linen-report',
         icon: (
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -21,7 +21,7 @@ const MENU_ITEMS = [
     {
         key: 'laporan',
         label: 'Laporan Harian Leader',
-        desc: 'Buat & kirim laporan aktivitas harian kepada atasan',
+        desc: 'Leader wajib mengisi laporan harian sebagai bentuk kontrol operasional dan bahan evaluasi manajemen.',
         to: '/daily-report',
         icon: (
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -85,8 +85,8 @@ export default function LeaderPage() {
                         </svg>
                     </button>
                     <div className="min-w-0">
-                        <div className="text-[9.5px] font-semibold tracking-[.14em] uppercase text-[#93C5FD] opacity-65">Sistem Absensi</div>
-                        <div className="text-[14px] font-bold text-white tracking-[-0.01em] truncate">Menu Leader</div>
+                        <div className="text-[9.5px] font-semibold tracking-[.14em] uppercase text-[#93C5FD] opacity-65">Sistem Pelaporan</div>
+                        <div className="text-[14px] font-bold text-white tracking-[-0.01em] truncate">Menu Leader & Deputi</div>
                     </div>
                 </header>
 
