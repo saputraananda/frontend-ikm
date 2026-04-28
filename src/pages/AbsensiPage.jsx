@@ -5,6 +5,9 @@ import useAuthStore from '../store/authStore';
 
 /* ── Office location ─────────────────────────────────────────────── */
 const MAX_DIST_M = 100;
+const MAX_DIST_HOSPITAL_M = 2000;
+const getMaxDistForLoc = (nearestId) => (nearestId && nearestId > 3) ? MAX_DIST_HOSPITAL_M : MAX_DIST_M;
+const fmtMaxDist = (m) => m >= 1000 ? `${m / 1000} km` : `${m}m`;
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
@@ -43,7 +46,8 @@ function getNearestOfficeInfo(lat, lng, locations) {
 
   return {
     label: nearestLocation.location_name || '-',
-    distance: minDistance
+    distance: minDistance,
+    nearestId: nearestLocation.id || null
   };
 }
 
@@ -340,6 +344,7 @@ export default function AbsensiPage() {
   const [gpsState, setGpsState] = useState('idle'); // idle | loading | ok | out | denied
   const [gpsDist, setGpsDist] = useState(null);
   const [nearestOfficeLabel, setNearestOfficeLabel] = useState('-');
+  const [nearestLocId, setNearestLocId] = useState(null);
   const [, setGpsCoord] = useState(null);
   const [gpsRefreshKey, setGpsRefreshKey] = useState(0);
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
@@ -390,7 +395,8 @@ export default function AbsensiPage() {
       const officeInfo = getNearestOfficeInfo(lat, lng, locations);
       setGpsDist(officeInfo.distance);
       setNearestOfficeLabel(officeInfo.label);
-      setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+      setNearestLocId(officeInfo.nearestId || null);
+      setGpsState(officeInfo.distance <= getMaxDistForLoc(officeInfo.nearestId) ? 'ok' : 'out');
       setGpsRefreshing(false);
     }
   }, [locations]);
@@ -432,7 +438,8 @@ export default function AbsensiPage() {
         const officeInfo = getNearestOfficeInfo(lat, lng, locs);
         setGpsDist(officeInfo.distance);
         setNearestOfficeLabel(officeInfo.label);
-        setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+        setNearestLocId(officeInfo.nearestId || null);
+        setGpsState(officeInfo.distance <= getMaxDistForLoc(officeInfo.nearestId) ? 'ok' : 'out');
         setGpsRefreshing(false);
       }
     };
@@ -504,10 +511,11 @@ export default function AbsensiPage() {
     }
     const officeInfo = getNearestOfficeInfo(coord.lat, coord.lng, locs);
     const dist = officeInfo.distance;
-    if (dist > MAX_DIST_M) {
+    const maxDist = getMaxDistForLoc(officeInfo.nearestId);
+    if (dist > maxDist) {
       setMsgs(prev => ({
         ...prev,
-        [msgKey]: { text: `Anda ${Math.round(dist)}m dari lokasi. Maks ${MAX_DIST_M}m.`, type: 'error' },
+        [msgKey]: { text: `Anda ${Math.round(dist)}m dari lokasi. Maks ${fmtMaxDist(maxDist)}.`, type: 'error' },
       }));
       setLoadingShift(null);
       return;
@@ -925,7 +933,7 @@ export default function AbsensiPage() {
             </div>
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="text-[12.5px] font-bold" style={{ color: gps.color }}>{gps.text}</div>
-              <div className="text-[10.5px] font-medium text-slate-400 mt-px">{nearestOfficeLabel} · maks {MAX_DIST_M}m</div>
+              <div className="text-[10.5px] font-medium text-slate-400 mt-px">{nearestOfficeLabel} · maks {fmtMaxDist(getMaxDistForLoc(nearestLocId))}</div>
             </div>
             <button
               className="w-8 h-8 rounded-[10px] border-[1.5px] bg-white/70 grid place-items-center cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed"
@@ -1115,7 +1123,7 @@ export default function AbsensiPage() {
             <div>
               <div className="text-[12.5px] font-bold text-slate-600 mb-0.5">Wajib di area kerja</div>
               <div className="text-[11px] text-slate-400 leading-[1.55] font-medium">
-                Absensi hanya bisa dilakukan dalam radius {MAX_DIST_M}m dari lokasi kantor. Pastikan GPS aktif dan sinyal stabil.
+                Absensi hanya bisa dilakukan dalam radius {fmtMaxDist(getMaxDistForLoc(nearestLocId))} dari lokasi kantor. Pastikan GPS aktif dan sinyal stabil.
               </div>
             </div>
           </div>

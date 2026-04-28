@@ -5,6 +5,8 @@ import useAuthStore from '../store/authStore';
 
 /* ── Office location ─────────────────────────────────────────────── */
 const MAX_DIST_M = 100;
+const MAX_DIST_HOSPITAL_M = 2000;
+const getMaxDistForLoc = (nearestId) => (nearestId && nearestId > 3) ? MAX_DIST_HOSPITAL_M : MAX_DIST_M;
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
@@ -43,7 +45,8 @@ function getNearestOfficeInfo(lat, lng, locations) {
 
   return {
     label: nearestLocation.location_name || '-',
-    distance: minDistance
+    distance: minDistance,
+    nearestId: nearestLocation.id || null
   };
 }
 
@@ -383,7 +386,7 @@ export default function ValetPage() {
       const officeInfo = getNearestOfficeInfo(lat, lng, locations);
       setGpsDist(officeInfo.distance);
       setNearestOfficeLabel(officeInfo.label);
-      setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+      setGpsState(officeInfo.distance <= getMaxDistForLoc(officeInfo.nearestId) ? 'ok' : 'out');
       setGpsRefreshing(false);
     }
   }, [locations]);
@@ -421,7 +424,7 @@ export default function ValetPage() {
         const officeInfo = getNearestOfficeInfo(lat, lng, locs);
         setGpsDist(officeInfo.distance);
         setNearestOfficeLabel(officeInfo.label);
-        setGpsState(officeInfo.distance <= MAX_DIST_M ? 'ok' : 'out');
+        setGpsState(officeInfo.distance <= getMaxDistForLoc(officeInfo.nearestId) ? 'ok' : 'out');
         setGpsRefreshing(false);
       }
     };
