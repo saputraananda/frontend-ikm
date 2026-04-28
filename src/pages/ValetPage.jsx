@@ -62,8 +62,10 @@ function timeStrToLabel(t) {
 }
 
 const SHIFT_STYLES = {
-  pagi: { optional: false, bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', accent: '#06B6D4', iconBg: '#CFFAFE' },
-  sore: { optional: false, bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', accent: '#14B8A6', iconBg: '#CCFBF1' },
+  pagi:   { optional: false, bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', accent: '#06B6D4', iconBg: '#CFFAFE' },
+  siang:  { optional: false, bg: '#F0F9FF', border: '#BAE6FD', text: '#0C4A6E', accent: '#0EA5E9', iconBg: '#E0F2FE' },
+  sore:   { optional: false, bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', accent: '#14B8A6', iconBg: '#CCFBF1' },
+  lembur: { optional: true,  bg: '#FAF5FF', border: '#E9D5FF', text: '#581C87', accent: '#A855F7', iconBg: '#F3E8FF' },
 };
 
 function buildShiftsFromDB(rows) {
@@ -965,7 +967,9 @@ export default function ValetPage() {
                   <div className="text-[18px] w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-shrink-0"
                     style={{ background: shift.iconBg }}>
                     {shift.key === 'pagi' && '🌅'}
+                    {shift.key === 'siang' && '☀️'}
                     {shift.key === 'sore' && '🌆'}
+                    {shift.key === 'lembur' && '🌙'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] font-extrabold" style={{ color: shift.text }}>Shift {shift.label}</div>

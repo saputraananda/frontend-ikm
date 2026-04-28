@@ -27,8 +27,10 @@ const NORMAL_SHIFTS = [
 
 /* Color config for valet shifts */
 const VALET_SHIFTS = [
-  { key: 'pagi', label: 'Pagi', bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', dot: '#06B6D4' },
-  { key: 'sore', label: 'Sore', bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', dot: '#14B8A6' },
+  { key: 'pagi',   label: 'Pagi',   bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', dot: '#06B6D4' },
+  { key: 'siang',  label: 'Siang',  bg: '#F0F9FF', border: '#BAE6FD', text: '#0C4A6E', dot: '#0EA5E9' },
+  { key: 'sore',   label: 'Sore',   bg: '#F0FDFA', border: '#99F6E4', text: '#0F766E', dot: '#14B8A6' },
+  { key: 'lembur', label: 'Lembur', bg: '#FAF5FF', border: '#E9D5FF', text: '#581C87', dot: '#A855F7' },
 ];
 
 const fmt2 = n => String(n).padStart(2, '0');
