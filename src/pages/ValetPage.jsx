@@ -492,10 +492,11 @@ export default function ValetPage() {
     }
     const officeInfo = getNearestOfficeInfo(coord.lat, coord.lng, locs);
     const dist = officeInfo.distance;
-    if (dist > MAX_DIST_M) {
+    const maxDist = getMaxDistForLoc(officeInfo.nearestId);
+    if (dist > maxDist) {
       setMsgs(prev => ({
         ...prev,
-        [msgKey]: { text: `Anda ${Math.round(dist)}m dari lokasi. Maks ${MAX_DIST_M}m.`, type: 'error' },
+        [msgKey]: { text: `Anda ${Math.round(dist)}m dari lokasi. Maks ${maxDist >= 1000 ? (maxDist / 1000) + 'km' : maxDist + 'm'}.`, type: 'error' },
       }));
       setLoadingShift(null);
       return;
