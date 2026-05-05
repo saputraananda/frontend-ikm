@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [modalError, setModalError] = useState(null); // null = modal hidden, string = modal shown with message
 
   useEffect(() => { document.title = 'Login | IKM Mobile'; }, []);
 
@@ -18,20 +18,22 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (modalError) return; // Prevent submit while modal is open
     setLoading(true);
-    setError('');
     try {
       const res = await api.post('/auth/login', form);
       setAuth({ user: res.data.data.user, token: res.data.data.token });
       navigate('/');
     } catch (err) {
+      let msg = 'Login gagal';
       if (err.response) {
-        setError(err.response?.data?.message || `Login gagal (HTTP ${err.response.status})`);
+        msg = err.response?.data?.message || `Login gagal (HTTP ${err.response.status})`;
       } else if (err.request) {
-        setError(`Tidak bisa terhubung ke server. Pastikan HP & PC satu jaringan dan backend menyala. (${import.meta.env.VITE_API_URL})`);
-      } else {
-        setError(err?.message || 'Login gagal');
+        msg = 'Tidak bisa terhubung ke server. Pastikan HP & PC satu jaringan dan backend menyala.';
+      } else if (err?.message) {
+        msg = err.message;
       }
+      setModalError(msg);
     } finally {
       setLoading(false);
     }
@@ -63,12 +65,7 @@ export default function LoginPage() {
           <div className="text-[17px] font-extrabold text-slate-900 mb-1">Selamat Datang 👋</div>
           <div className="text-[12.5px] text-slate-400 font-medium mb-5">Masuk dengan akun karyawan Anda</div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-[14px] px-[14px] py-3 text-[12px] text-red-800 leading-snug mb-[18px] font-medium">
-              {error}
-            </div>
-          )}
-
+          
           <form onSubmit={handleSubmit}>
             {/* Username */}
             <div className="flex flex-col gap-1.5 mb-3.5">
@@ -135,6 +132,35 @@ export default function LoginPage() {
           © {new Date().getFullYear()} Part Of Alora Group Indonesia
         </div>
       </div>
+
+      {/* Error Modal */}
+      {modalError && (
+        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-[360px] bg-white rounded-[20px] overflow-hidden shadow-[0_16px_64px_rgba(0,0,0,.3)]">
+            <div className="px-5 pt-5 pb-3 text-center">
+              <div className="w-14 h-14 rounded-[16px] bg-red-50 border-2 border-red-200 grid place-items-center mx-auto mb-3">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+              </div>
+              <div className="text-[15px] font-extrabold text-slate-900 mb-1.5">Login Gagal</div>
+              <div className="text-[12.5px] text-slate-500 leading-[1.6] font-medium">
+                {modalError}
+              </div>
+            </div>
+            <div className="px-5 pb-5 pt-2">
+              <button
+                className="w-full h-[42px] rounded-[12px] bg-red-500 text-white text-[12.5px] font-extrabold transition hover:bg-red-400 cursor-pointer"
+                onClick={() => setModalError(null)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
