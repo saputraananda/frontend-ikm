@@ -13,6 +13,7 @@ import LeaderPage from './pages/LeaderPage';
 import ManagementAbsensiPage from './pages/ManagementAbsensiPage';
 import LinenReportPage from './pages/LinenReportPage';
 import DailyReportPage from './pages/DailyReportPage';
+import KasbonPage from './pages/KasbonPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/leader" element={<ProtectedRoute><LeaderPage /></ProtectedRoute>} />
         <Route path="/linen-report" element={<ProtectedRoute><LinenReportPage /></ProtectedRoute>} />
         <Route path="/daily-report" element={<ProtectedRoute><DailyReportPage /></ProtectedRoute>} />
+        <Route path="/kasbon" element={<ProtectedRoute><KasbonPage /></ProtectedRoute>} />
         <Route path="/about" element={<ProtectedRoute><AboutAppPage /></ProtectedRoute>} />
         <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />
         <Route path="/management-attendance" element={<ProtectedRoute><ManagementAbsensiPage /></ProtectedRoute>} />

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
+import useAuthStore from '../store/authStore';
 
 const FINDING_TYPES = [
   'Rewash', 'Robek', 'Bolong', 'Jahitan lepas', 'Tali lepas',
@@ -55,6 +56,9 @@ const STATUS_META = {
 export default function LinenReportPage() {
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const statusFileRef = useRef(null);
+  const authUser = useAuthStore(s => s.user);
+  const myEmployeeId = authUser?.employee_id;
 
   /* ── Tabs ── */
   const [activeTab, setActiveTab] = useState('form'); /* 'form' | 'history' */
@@ -62,6 +66,7 @@ export default function LinenReportPage() {
   /* ── Master data ── */
   const [areas, setAreas] = useState([]);
   const [hospitals, setHospitals] = useState([]);
+  const [leaders, setLeaders] = useState([]); /* leaders/deputies for reporter filter */
 
   /* ── Form fields ── */
   const [reporterName, setReporterName] = useState('');
@@ -96,12 +101,18 @@ export default function LinenReportPage() {
   const [historyEnd, setHistoryEnd] = useState(defaultRange.end);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [reporterFilter, setReporterFilter] = useState(''); /* '' = semua | 'mine' | employee_id string */
   const [statusNote, setStatusNote] = useState('');
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [statusTargetId, setStatusTargetId] = useState(null);
   const [statusTargetNext, setStatusTargetNext] = useState(''); /* 'proses' | 'selesai' */
   const [statusSubmitting, setStatusSubmitting] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [statusFile, setStatusFile] = useState(null);
+  const [statusFilePreview, setStatusFilePreview] = useState(null);
+
+  /* ── Photo preview modal ── */
+  const [photoModal, setPhotoModal] = useState(null); // { url, title }
 
   /* ── Init ── */
   useEffect(() => {
@@ -110,9 +121,11 @@ export default function LinenReportPage() {
       api.get('/linen-report/areas'),
       api.get('/linen-report/hospitals'),
       api.get('/linen-report/check-today'),
-    ]).then(([areasRes, hospitalsRes, checkRes]) => {
+      api.get('/linen-report/leaders'),
+    ]).then(([areasRes, hospitalsRes, checkRes, leadersRes]) => {
       setAreas(areasRes.data?.data || []);
       setHospitals(hospitalsRes.data?.data || []);
+      setLeaders(leadersRes.data?.data || []);
       if (checkRes.data?.data?.submitted) setShowDuplicateModal(true);
     }).catch(() => {});
   }, []);
@@ -120,7 +133,7 @@ export default function LinenReportPage() {
   /* ── Fetch history when tab switches or filter changes ── */
   useEffect(() => {
     if (activeTab === 'history') fetchHistory();
-  }, [activeTab, historyStart, historyEnd]);
+  }, [activeTab, historyStart, historyEnd, reporterFilter]);
 
   const fetchHistory = async () => {
     setHistoryLoading(true);
@@ -128,7 +141,16 @@ export default function LinenReportPage() {
       const params = {};
       if (historyStart) params.startDate = historyStart;
       if (historyEnd) params.endDate = historyEnd;
-      const res = await api.get('/linen-report/my-reports', { params });
+
+      let endpoint;
+      if (reporterFilter === 'mine') {
+        endpoint = '/linen-report/my-reports';
+      } else {
+        endpoint = '/linen-report/all-reports';
+        if (reporterFilter) params.reportedBy = reporterFilter; /* specific leader */
+      }
+
+      const res = await api.get(endpoint, { params });
       setReports(res.data?.data || []);
     } catch (err) {
       console.error('fetchHistory', err);
@@ -262,6 +284,8 @@ export default function LinenReportPage() {
     setStatusTargetId(id);
     setStatusTargetNext(nextStatus);
     setStatusNote('');
+    setStatusFile(null);
+    setStatusFilePreview(null);
     setStatusModalOpen(true);
   };
 
@@ -269,11 +293,16 @@ export default function LinenReportPage() {
     if (!statusTargetId || !statusTargetNext) return;
     setStatusSubmitting(true);
     try {
-      await api.patch(`/linen-report/${statusTargetId}/status`, {
-        status: statusTargetNext,
-        note: statusNote.trim() || undefined,
+      const fd = new FormData();
+      fd.append('status', statusTargetNext);
+      if (statusNote.trim()) fd.append('note', statusNote.trim());
+      if (statusFile) fd.append('attachment', statusFile);
+      await api.patch(`/linen-report/${statusTargetId}/status`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setStatusModalOpen(false);
+      setStatusFile(null);
+      setStatusFilePreview(null);
       fetchHistory();
     } catch (err) {
       console.error('updateStatus', err);
@@ -572,6 +601,41 @@ export default function LinenReportPage() {
                   })}
                 </div>
               </div>
+              {/* Reporter filter */}
+              <div className="mb-2">
+                <label className="text-[10px] font-semibold text-slate-400 mb-0.5 block">Pelapor</label>
+                <div className="flex gap-1.5 mb-1.5">
+                  {[
+                    { value: '', label: 'Semua' },
+                    { value: 'mine', label: 'Laporan Saya' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setReporterFilter(opt.value)}
+                      className={`h-[32px] px-3 rounded-[10px] text-[11.5px] font-bold transition cursor-pointer ${
+                        reporterFilter === opt.value
+                          ? 'bg-slate-800 text-white border border-slate-800'
+                          : 'bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100'
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {leaders.length > 0 && (
+                  <select
+                    className={selectCls}
+                    style={selectStyle}
+                    value={reporterFilter === '' || reporterFilter === 'mine' ? '' : reporterFilter}
+                    onChange={e => setReporterFilter(e.target.value || '')}>
+                    <option value="">— Pilih Leader / Deputi —</option>
+                    {leaders.map(l => (
+                      <option key={l.employee_id} value={String(l.employee_id)}>
+                        {l.full_name} ({l.role === 'management' ? 'Manajemen' : l.role === 'deputi' ? 'Deputi' : 'Leader'})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label className="text-[10px] font-semibold text-slate-400 mb-0.5 block">Dari</label>
@@ -645,9 +709,11 @@ export default function LinenReportPage() {
                         report={r}
                         areas={areas}
                         hospitals={hospitals}
+                        isOwn={Number(r.reported_by) === Number(myEmployeeId)}
                         onEdit={() => startEdit(r)}
                         onDelete={() => setDeleteConfirmId(r.id)}
                         onStatus={openStatusModal}
+                        onPhotoPreview={(url, title) => setPhotoModal({ url, title })}
                       />
                     ))}
                   </div>
@@ -755,22 +821,74 @@ export default function LinenReportPage() {
                   : 'Tandai laporan ini sudah selesai ditangani. Tambahkan catatan jika diperlukan.'}
               </p>
               <textarea
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-[12px] bg-slate-50 text-[13px] text-slate-900 outline-none resize-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(59,130,246,.12)] focus:bg-white placeholder:text-slate-400 mb-4"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-[12px] bg-slate-50 text-[13px] text-slate-900 outline-none resize-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(59,130,246,.12)] focus:bg-white placeholder:text-slate-400 mb-3"
                 rows={3}
                 placeholder="Catatan opsional…"
                 value={statusNote}
                 onChange={e => setStatusNote(e.target.value)}
               />
+              {/* Photo evidence upload */}
+              <input type="file" ref={statusFileRef} accept="image/*" className="hidden"
+                onChange={e => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setStatusFile(f);
+                  setStatusFilePreview(URL.createObjectURL(f));
+                }}
+              />
+              {statusFilePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 mb-3">
+                  <img src={statusFilePreview} alt="Bukti" className="w-full max-h-36 object-contain bg-slate-100" />
+                  <button type="button"
+                    onClick={() => { setStatusFile(null); setStatusFilePreview(null); if (statusFileRef.current) statusFileRef.current.value = ''; }}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 text-white grid place-items-center cursor-pointer hover:bg-black/70 transition">
+                    <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                      <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : null}
+              <button type="button" onClick={() => statusFileRef.current?.click()}
+                className="w-full mb-4 py-2 rounded-[12px] border-2 border-dashed border-slate-300 text-slate-500 text-[11.5px] font-semibold flex items-center justify-center gap-1.5 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition cursor-pointer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                {statusFile ? 'Ganti Foto Bukti' : 'Upload Foto Bukti (Opsional)'}
+              </button>
               <div className="flex flex-col gap-2">
                 <button onClick={handleStatusUpdate} disabled={statusSubmitting}
                   className="w-full py-2.5 rounded-[12px] text-white text-[13px] font-bold cursor-pointer transition disabled:opacity-60"
                   style={{ background: statusTargetNext === 'proses' ? '#F59E0B' : '#10B981' }}>
                   {statusSubmitting ? 'Memperbarui…' : (statusTargetNext === 'proses' ? 'Tandai Proses' : 'Tandai Selesai')}
                 </button>
-                <button onClick={() => setStatusModalOpen(false)}
+                <button onClick={() => { setStatusModalOpen(false); setStatusFile(null); setStatusFilePreview(null); }}
                   className="w-full py-2.5 rounded-[12px] border border-slate-200 text-slate-600 text-[13px] font-semibold cursor-pointer hover:bg-slate-50 transition">
                   Batal
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Photo preview modal */}
+        {photoModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 px-3 py-4"
+            onClick={() => setPhotoModal(null)}>
+            <div className="w-full max-w-[430px] max-h-[calc(100dvh-24px)] bg-white rounded-[18px] overflow-hidden shadow-[0_12px_60px_rgba(0,0,0,.35)] flex flex-col"
+              onClick={e => e.stopPropagation()}>
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <div className="text-[13px] font-extrabold text-slate-900 truncate pr-3">{photoModal.title || 'Foto Bukti'}</div>
+                <button className="w-9 h-9 rounded-[12px] grid place-items-center border border-slate-200 bg-white text-slate-600 cursor-pointer"
+                  onClick={() => setPhotoModal(null)} type="button" aria-label="Tutup">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M5 5l10 10M15 5L5 15"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="p-3 sm:p-4 overflow-y-auto">
+                <div className="rounded-[16px] overflow-hidden bg-slate-100 border border-slate-200">
+                  <img src={photoModal.url} alt={photoModal.title || 'Foto bukti'} className="w-full h-auto max-h-[72dvh] object-contain"/>
+                </div>
               </div>
             </div>
           </div>
@@ -783,7 +901,7 @@ export default function LinenReportPage() {
 /* ───────────────────────────────────────────
    Report Card with Progress Tracking
 ─────────────────────────────────────────── */
-function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
+function ReportCard({ report, areas, hospitals, isOwn, onEdit, onDelete, onStatus, onPhotoPreview }) {
   const meta = STATUS_META[report.status] || STATUS_META.terkirim;
   const areaName = areas.find(a => String(a.id) === String(report.area_id))?.name || '—';
   const hospitalName = hospitals.find(h => String(h.id) === String(report.hospital_id))?.name || '—';
@@ -796,6 +914,7 @@ function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
       by: report.reporter_name,
       at: report.created_at,
       note: report.sending_note,
+      path: report.attachment_path,
     },
     {
       key: 'proses',
@@ -804,6 +923,7 @@ function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
       by: report.process_by_name,
       at: report.process_at,
       note: report.process_note,
+      path: report.process_path,
     },
     {
       key: 'selesai',
@@ -812,6 +932,7 @@ function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
       by: report.completed_by_name,
       at: report.completed_at,
       note: report.completed_note,
+      path: report.completed_path,
     },
   ];
 
@@ -877,6 +998,17 @@ function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
                       “{step.note}”
                     </div>
                   )}
+                  {step.active && step.path && (
+                    <button
+                      type="button"
+                      onClick={() => onPhotoPreview(`${ASSET_BASE}${step.path}`, `Foto ${step.label}`)}
+                      className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1 hover:bg-blue-100 transition cursor-pointer">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/>
+                      </svg>
+                      Lihat Foto Bukti
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -886,8 +1018,8 @@ function ReportCard({ report, areas, hospitals, onEdit, onDelete, onStatus }) {
 
       {/* Action bar */}
       <div className="px-4 pb-4 flex items-center gap-2">
-        {/* Edit / Delete - only if not completed */}
-        {report.status !== 'selesai' && (
+        {/* Edit / Delete - only if not completed and own report */}
+        {isOwn && report.status !== 'selesai' && (
           <>
             <button onClick={onEdit}
               className="h-[34px] px-3 rounded-[10px] bg-slate-50 border border-slate-200 text-slate-700 text-[11.5px] font-bold flex items-center gap-1.5 hover:bg-slate-100 transition cursor-pointer">
