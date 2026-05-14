@@ -57,7 +57,7 @@ export default function KasbonPage() {
     const authUser = useAuthStore(s => s.user);
 
     /* ── Maintenance popup ── */
-    const [showMaintenance] = useState(true);
+    // const [showMaintenance] = useState(true);
     const employeeName = authUser?.full_name || authUser?.name || "";
 
     const [activeTab, setActiveTab] = useState("form");
@@ -236,7 +236,7 @@ export default function KasbonPage() {
             <div className="w-full max-w-[430px] min-h-[100dvh] bg-white flex flex-col shadow-[0_0_0_1px_rgba(0,0,0,.05),0_8px_48px_rgba(0,0,0,.07)]">
 
                 {/* ── Maintenance popup ── */}
-                {showMaintenance && (
+                {/* {showMaintenance && (
                     <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-[4px] grid place-items-center px-6">
                         <div className="bg-white rounded-[24px] p-7 text-center max-w-[320px] w-full shadow-2xl">
                             <div className="w-16 h-16 rounded-full bg-amber-100 grid place-items-center mx-auto mb-4">
@@ -257,7 +257,7 @@ export default function KasbonPage() {
                             </button>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 <header className="sticky top-0 z-20 bg-[#0B1739] h-14 flex items-center gap-3 px-4 border-b border-white/[.06] flex-shrink-0">
                     <button className="w-[34px] h-[34px] rounded-[8px] border border-white/10 bg-white/[.07] text-white/70 grid place-items-center cursor-pointer flex-shrink-0 transition hover:bg-white/[.15] hover:text-white"
