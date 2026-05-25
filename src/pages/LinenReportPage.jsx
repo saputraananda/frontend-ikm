@@ -74,6 +74,7 @@ export default function LinenReportPage() {
   const [areaId, setAreaId] = useState('');
   const [hospitalId, setHospitalId] = useState('');
   const [findingLocation, setFindingLocation] = useState('');
+  const [ownershipType, setOwnershipType] = useState(''); // 'hospital' | 'rental'
   const [linenType, setLinenType] = useState('');
   const [findingType, setFindingType] = useState('');
   const [findingOther, setFindingOther] = useState('');
@@ -181,6 +182,7 @@ export default function LinenReportPage() {
     setAreaId('');
     setHospitalId('');
     setFindingLocation('');
+    setOwnershipType('');
     setLinenType('');
     setFindingType('');
     setFindingOther('');
@@ -202,6 +204,7 @@ export default function LinenReportPage() {
     setAreaId(String(report.area_id || ''));
     setHospitalId(String(report.hospital_id || ''));
     setFindingLocation(report.finding_location || '');
+    setOwnershipType(report.ownership_type || '');
     setLinenType(report.linen_type || '');
     const isOther = !FINDING_TYPES.includes(report.finding_type);
     if (isOther) {
@@ -237,6 +240,7 @@ export default function LinenReportPage() {
     if (!findingLocation) return setSubmitError('Lokasi penemuan wajib dipilih.');
     if (!areaId) return setSubmitError('Divisi wajib dipilih.');
     if (!hospitalId) return setSubmitError('Rumah sakit wajib dipilih.');
+    if (!ownershipType) return setSubmitError('Kepemilikan linen wajib dipilih.');
     if (!linenType.trim()) return setSubmitError('Jenis linen wajib diisi.');
     if (!findingType) return setSubmitError('Jenis temuan wajib dipilih.');
     if (findingType === 'Lainnya' && !resolvedFinding) return setSubmitError('Keterangan jenis temuan lainnya wajib diisi.');
@@ -250,6 +254,7 @@ export default function LinenReportPage() {
       fd.append('area_id', areaId);
       fd.append('hospital_id', hospitalId);
       fd.append('finding_location', findingLocation);
+      fd.append('ownership_type', ownershipType);
       fd.append('linen_type', linenType.trim());
       fd.append('finding_type', resolvedFinding);
       fd.append('finding_qty', String(findingQty));
@@ -432,6 +437,24 @@ export default function LinenReportPage() {
                     <option value="">— Pilih Rumah Sakit —</option>
                     {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </select>
+                </Field>
+                <Field label="Kepemilikan Linen" required>
+                  <div className="flex gap-2">
+                    {[{ value: 'rental', label: 'Linen Sewa' }, { value: 'hospital', label: 'Linen Rumah Sakit' }].map(opt => (
+                      <label key={opt.value}
+                        className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-[12px] border cursor-pointer transition ${
+                          ownershipType === opt.value ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                        }`}
+                        onClick={() => setOwnershipType(opt.value)}>
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 grid place-items-center transition ${
+                          ownershipType === opt.value ? 'border-emerald-500' : 'border-slate-300'
+                        }`}>
+                          {ownershipType === opt.value && <div className="w-2 h-2 rounded-full bg-emerald-500"/>}
+                        </div>
+                        <span className={`text-[12.5px] font-medium ${ownershipType === opt.value ? 'text-emerald-800' : 'text-slate-700'}`}>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </Field>
               </Section>
 
@@ -946,7 +969,14 @@ function ReportCard({ report, areas, hospitals, isOwn, onEdit, onDelete, onStatu
           <div className="text-[11.5px] text-slate-500 mt-0.5">
             {report.finding_type} • {report.finding_qty} pcs • {report.finding_location}
           </div>
-          <div className="text-[11px] text-slate-400 mt-0.5">{areaName} • {hospitalName}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">
+            {areaName} • {hospitalName}
+            {report.ownership_type && (
+              <span className="ml-1.5">
+                • {report.ownership_type === 'hospital' ? 'Linen RS' : 'Linen Sewa'}
+              </span>
+            )}
+          </div>
         </div>
         <span className={`text-[10.5px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${meta.bg} ${meta.color} ${meta.border} border`}>
           {meta.label}
