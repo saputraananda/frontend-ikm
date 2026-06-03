@@ -67,9 +67,12 @@ export default function LinenReportPage() {
   const [areas, setAreas] = useState([]);
   const [hospitals, setHospitals] = useState([]);
   const [leaders, setLeaders] = useState([]); /* leaders/deputies for reporter filter */
+  const [employees, setEmployees] = useState([]);
 
   /* ── Form fields ── */
-  const [reporterName, setReporterName] = useState('');
+  const [reporterName, setReporterName] = useState(authUser?.full_name || '');
+  const [empSearchFocused, setEmpSearchFocused] = useState(false);
+  const [empSearchQuery, setEmpSearchQuery] = useState('');
   const [reportDate, setReportDate] = useState(todayStr());
   const [areaId, setAreaId] = useState('');
   const [hospitalId, setHospitalId] = useState('');
@@ -123,10 +126,12 @@ export default function LinenReportPage() {
       api.get('/linen-report/hospitals'),
       api.get('/linen-report/check-today'),
       api.get('/linen-report/leaders'),
-    ]).then(([areasRes, hospitalsRes, checkRes, leadersRes]) => {
+      api.get('/linen-report/employees'),
+    ]).then(([areasRes, hospitalsRes, checkRes, leadersRes, empRes]) => {
       setAreas(areasRes.data?.data || []);
       setHospitals(hospitalsRes.data?.data || []);
       setLeaders(leadersRes.data?.data || []);
+      setEmployees(empRes.data?.data || []);
       if (checkRes.data?.data?.submitted) setShowDuplicateModal(true);
     }).catch(() => {});
   }, []);
@@ -177,7 +182,7 @@ export default function LinenReportPage() {
   };
 
   const resetForm = () => {
-    setReporterName('');
+    setReporterName(authUser?.full_name || '');
     setReportDate(todayStr());
     setAreaId('');
     setHospitalId('');
@@ -235,7 +240,7 @@ export default function LinenReportPage() {
 
     const resolvedFinding = findingType === 'Lainnya' ? findingOther.trim() : findingType;
 
-    if (!reporterName.trim()) return setSubmitError('Nama penemu wajib diisi.');
+    if (!reporterName.trim()) return setSubmitError('Nama penemu wajib diisi (Pilih dari daftar karyawan).');
     if (!reportDate) return setSubmitError('Tanggal temuan wajib diisi.');
     if (!findingLocation) return setSubmitError('Lokasi penemuan wajib dipilih.');
     if (!areaId) return setSubmitError('Divisi wajib dipilih.');
@@ -395,8 +400,54 @@ export default function LinenReportPage() {
               {/* Section 1 – Identitas */}
               <Section color="bg-blue-500" title="Identitas Pelapor">
                 <Field label="Nama Penemu Temuan (Karyawan IKM)" required>
-                  <input className={inputCls} type="text" placeholder="Masukkan nama lengkap"
-                    value={reporterName} onChange={e => setReporterName(e.target.value)} />
+                  <div className="relative">
+                    <input
+                      className={inputCls + ' pr-8'}
+                      type="text"
+                      placeholder="Cari & pilih nama karyawan..."
+                      value={empSearchFocused ? empSearchQuery : reporterName}
+                      onFocus={() => {
+                        setEmpSearchFocused(true);
+                        setEmpSearchQuery('');
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setEmpSearchFocused(false), 200);
+                      }}
+                      onChange={e => {
+                        setEmpSearchQuery(e.target.value);
+                        setReporterName(''); // clear when typing to force re-selection
+                      }}
+                    />
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1l4 4 4-4" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+
+                    {empSearchFocused && (
+                      <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-[12px] shadow-[0_4px_20px_rgba(0,0,0,.08)] z-50">
+                        {employees.filter(emp => emp.full_name.toLowerCase().includes(empSearchQuery.toLowerCase())).length > 0 ? (
+                          employees
+                            .filter(emp => emp.full_name.toLowerCase().includes(empSearchQuery.toLowerCase()))
+                            .map(emp => (
+                              <div
+                                key={emp.employee_id}
+                                className="px-3 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition"
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // prevent blur before click
+                                  setReporterName(emp.full_name);
+                                  setEmpSearchFocused(false);
+                                }}
+                              >
+                                {emp.full_name}
+                              </div>
+                            ))
+                        ) : (
+                          <div className="px-3 py-3 text-[12.5px] text-slate-400 text-center">
+                            Karyawan tidak ditemukan
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </Field>
                 <Field label="Tanggal Temuan" required>
                   <input className={inputCls} type="date"

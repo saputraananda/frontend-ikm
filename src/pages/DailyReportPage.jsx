@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
+import useAuthStore from '../store/authStore';
 
 const ABSENCE_REASONS = ['Izin', 'Sakit', 'Alfa'];
 const ABSENCE_REASON_STYLE = {
@@ -55,6 +56,7 @@ const nk = () => ++_kc;
 export default function DailyReportPage() {
     const navigate = useNavigate();
     const galleryRef = useRef(null);
+    const authUser = useAuthStore(s => s.user);
 
     /* ── Tabs ── */
     const [activeTab, setActiveTab] = useState('form');
@@ -69,7 +71,9 @@ export default function DailyReportPage() {
     /* Identitas */
     const [reportDate, setReportDate] = useState(todayStr());
     const [areaId, setAreaId] = useState('');
-    const [picName, setPicName] = useState('');
+    const [picName, setPicName] = useState(authUser?.full_name ? toTitleCase(authUser.full_name) : '');
+    const [picSearchFocused, setPicSearchFocused] = useState(false);
+    const [picSearchQuery, setPicSearchQuery] = useState('');
     const [role, setRole] = useState('');
 
     /* Kedisiplinan */
@@ -227,7 +231,7 @@ export default function DailyReportPage() {
 
         if (!reportDate) return setSubmitError('Tanggal wajib diisi.');
         if (!areaId) return setSubmitError('Area/Bagian wajib dipilih.');
-        if (!picName.trim()) return setSubmitError('Nama penanggung jawab wajib diisi.');
+        if (!picName.trim()) return setSubmitError('Nama penanggung jawab wajib diisi (Pilih dari daftar karyawan).');
         if (!role) return setSubmitError('Peran wajib dipilih.');
         if (!productionStartTime) return setSubmitError('Waktu mulai produksi wajib diisi.');
         if (!isLate) return setSubmitError('Status keterlambatan wajib dipilih.');
@@ -282,7 +286,7 @@ export default function DailyReportPage() {
     };
 
     const resetForm = () => {
-        setReportDate(todayStr()); setAreaId(''); setPicName(''); setRole('');
+        setReportDate(todayStr()); setAreaId(''); setPicName(authUser?.full_name ? toTitleCase(authUser.full_name) : ''); setRole('');
         setPresentCount(0); setAbsentMembers([]); setProductionStartTime('');
         setIsLate(''); setLateMembers([]); setAreaCleanliness(''); setConstraintNotes('');
         setBriefingDoc(null);
@@ -429,8 +433,54 @@ export default function DailyReportPage() {
                                     </select>
                                 </Field>
                                 <Field label="Nama Penanggung Jawab" required>
-                                    <input className={inputCls} type="text" placeholder="Nama lengkap leader / deputi"
-                                        value={picName} onChange={e => setPicName(e.target.value)} />
+                                    <div className="relative">
+                                        <input
+                                            className={inputCls + ' pr-8'}
+                                            type="text"
+                                            placeholder="Cari & pilih nama penanggung jawab..."
+                                            value={picSearchFocused ? picSearchQuery : picName}
+                                            onFocus={() => {
+                                                setPicSearchFocused(true);
+                                                setPicSearchQuery('');
+                                            }}
+                                            onBlur={() => {
+                                                setTimeout(() => setPicSearchFocused(false), 200);
+                                            }}
+                                            onChange={e => {
+                                                setPicSearchQuery(e.target.value);
+                                                setPicName(''); // clear when typing to force re-selection
+                                            }}
+                                        />
+                                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M1 1l4 4 4-4" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+
+                                        {picSearchFocused && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-[12px] shadow-[0_4px_20px_rgba(0,0,0,.08)] z-50">
+                                                {employees.filter(emp => emp.full_name.toLowerCase().includes(picSearchQuery.toLowerCase())).length > 0 ? (
+                                                    employees
+                                                        .filter(emp => emp.full_name.toLowerCase().includes(picSearchQuery.toLowerCase()))
+                                                        .map(emp => (
+                                                            <div
+                                                                key={emp.employee_id}
+                                                                className="px-3 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition"
+                                                                onMouseDown={(e) => {
+                                                                    e.preventDefault(); // prevent blur before click
+                                                                    setPicName(emp.full_name);
+                                                                    setPicSearchFocused(false);
+                                                                }}
+                                                            >
+                                                                {emp.full_name}
+                                                            </div>
+                                                        ))
+                                                ) : (
+                                                    <div className="px-3 py-3 text-[12.5px] text-slate-400 text-center">
+                                                        Karyawan tidak ditemukan
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </Field>
                                 <Field label="Peran" required>
                                     <div className="flex gap-2">

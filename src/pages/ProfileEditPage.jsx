@@ -353,12 +353,14 @@ export default function ProfileEditPage() {
                 address: d.address || '',
                 ktp_number: d.ktp_number || '',
                 phone_number: d.phone_number || '',
+                private_email: d.private_email || '',
                 mother_name: d.mother_name || '',
                 emergency_contact: d.emergency_contact || '',
                 join_date: d.join_date ? d.join_date.slice(0, 10) : '',
                 contract_end_date: d.contract_end_date ? d.contract_end_date.slice(0, 10) : '',
                 education_level_id: d.education_level_id ? String(d.education_level_id) : '',
                 school_name: d.school_name || '',
+                major_name: d.major_name || '',
                 religion_id: d.religion_id ? String(d.religion_id) : '',
                 marital_status: d.marital_status || '',
                 bank_id: d.bank_id ? String(d.bank_id) : '',
@@ -502,6 +504,7 @@ export default function ProfileEditPage() {
                         <FieldRow label="Tempat Lahir" name="birth_place" value={form.birth_place} onChange={handleChange} placeholder="cth. Jakarta" />
                         <FieldRow label="Tanggal Lahir" name="birth_date" value={form.birth_date} onChange={handleChange} type="date" />
                         <FieldRow label="No. HP" name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="cth. 087770597000" error={phoneErrors.phone_number} />
+                        <FieldRow label="Email Pribadi" name="private_email" value={form.private_email} onChange={handleChange} placeholder="cth. nama@email.com" type="email" />
                         <FieldRow label="No. KTP" name="ktp_number" value={form.ktp_number} onChange={handleChange} placeholder="16 digit NIK" />
                         <FieldRow label="Alamat" name="address" value={form.address} onChange={handleChange} placeholder="Alamat lengkap" />
                         <FieldRow label="Status Pernikahan" name="marital_status" value={form.marital_status} onChange={handleChange} options={MARITAL_OPTS} />
@@ -516,6 +519,7 @@ export default function ProfileEditPage() {
                         <FieldRow label="Tanggal Kontrak Berakhir" name="contract_end_date" value={form.contract_end_date} onChange={handleChange} type="date" />
                         <FieldRow label="Pendidikan Terakhir" name="education_level_id" value={form.education_level_id} onChange={handleChange} options={educationOpts} />
                         <FieldRow label="Nama Instansi" name="school_name" value={form.school_name} onChange={handleChange} placeholder="Nama sekolah/universitas" />
+                        <FieldRow label="Jurusan (Opsional)" name="major_name" value={form.major_name} onChange={handleChange} placeholder="Nama jurusan" />
                     </Section>
 
                     {/* Rekening Bank */}

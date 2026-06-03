@@ -47,6 +47,7 @@ export default function ProfilePage() {
     { label: 'Nama Lengkap',     value: p.full_name || p.name },
     { label: 'NIK / Kode',       value: p.employee_code },
     { label: 'Email',            value: p.email },
+    { label: 'Email Pribadi',    value: p.private_email },
     { label: 'Username',         value: p.username },
     { label: 'No. HP',           value: p.phone_number },
     { label: 'Jenis Kelamin',    value: p.gender },
@@ -54,6 +55,7 @@ export default function ProfilePage() {
     { label: 'Tanggal Lahir',    value: fmtDateLong(p.birth_date) },
     { label: 'Alamat',           value: p.address },
     { label: 'Tanggal Bergabung',value: fmtDateLong(p.join_date) },
+    { label: 'Jurusan',          value: p.major_name },
     { label: 'Role',             value: p.role },
   ].filter(r => r.value);
 
