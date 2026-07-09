@@ -70,12 +70,19 @@ export default function LinenReportPage() {
   const [employees, setEmployees] = useState([]);
 
   /* ── Form fields ── */
-  const [reporterName, setReporterName] = useState(authUser?.full_name || '');
+  const [reporterName, setReporterName] = useState(authUser?.full_name || authUser?.name || '');
   const [empSearchFocused, setEmpSearchFocused] = useState(false);
   const [empSearchQuery, setEmpSearchQuery] = useState('');
   const [reportDate, setReportDate] = useState(todayStr());
   const [areaId, setAreaId] = useState('');
   const [hospitalId, setHospitalId] = useState('');
+
+  /* Sync reporterName when authUser is loaded */
+  useEffect(() => {
+    if (authUser && !reporterName) {
+      setReporterName(authUser.full_name || authUser.name || '');
+    }
+  }, [authUser, reporterName]);
   const [findingLocation, setFindingLocation] = useState('');
   const [ownershipType, setOwnershipType] = useState(''); // 'hospital' | 'rental'
   const [linenType, setLinenType] = useState('');
@@ -182,7 +189,7 @@ export default function LinenReportPage() {
   };
 
   const resetForm = () => {
-    setReporterName(authUser?.full_name || '');
+    setReporterName(authUser?.full_name || authUser?.name || '');
     setReportDate(todayStr());
     setAreaId('');
     setHospitalId('');
@@ -408,7 +415,7 @@ export default function LinenReportPage() {
                       value={empSearchFocused ? empSearchQuery : reporterName}
                       onFocus={() => {
                         setEmpSearchFocused(true);
-                        setEmpSearchQuery('');
+                        setEmpSearchQuery(reporterName);
                       }}
                       onBlur={() => {
                         setTimeout(() => setEmpSearchFocused(false), 200);
@@ -424,10 +431,15 @@ export default function LinenReportPage() {
 
                     {empSearchFocused && (
                       <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-[12px] shadow-[0_4px_20px_rgba(0,0,0,.08)] z-50">
-                        {employees.filter(emp => emp.full_name.toLowerCase().includes(empSearchQuery.toLowerCase())).length > 0 ? (
-                          employees
-                            .filter(emp => emp.full_name.toLowerCase().includes(empSearchQuery.toLowerCase()))
-                            .map(emp => (
+                        {(() => {
+                          const q = empSearchQuery.trim().toLowerCase();
+                          const filtered = employees.filter(emp => {
+                            if (q === (reporterName || '').trim().toLowerCase()) return true;
+                            return emp.full_name.toLowerCase().includes(q);
+                          });
+
+                          if (filtered.length > 0) {
+                            return filtered.map(emp => (
                               <div
                                 key={emp.employee_id}
                                 className="px-3 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition"
@@ -439,12 +451,14 @@ export default function LinenReportPage() {
                               >
                                 {emp.full_name}
                               </div>
-                            ))
-                        ) : (
-                          <div className="px-3 py-3 text-[12.5px] text-slate-400 text-center">
-                            Karyawan tidak ditemukan
-                          </div>
-                        )}
+                            ));
+                          }
+                          return (
+                            <div className="px-3 py-3 text-[12.5px] text-slate-400 text-center">
+                              Karyawan tidak ditemukan
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>

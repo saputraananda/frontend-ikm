@@ -81,6 +81,11 @@ const MENU_ITEMS = [
         icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="13" rx="2" /><path d="M2 10h20" /><circle cx="12" cy="15" r="2" /><path d="M6 15h.01M18 15h.01" /></svg>,
         bg: 'linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%)'
     },
+    {
+        key: 'rewash', label: 'Rewash', to: '/rewash',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23,4 23,10 17,10" /><polyline points="1,20 1,14 7,14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>,
+        bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)'
+    },
 ];
 
 const SHIFT_META = {

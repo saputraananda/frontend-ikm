@@ -8,6 +8,7 @@ import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import ProfileEditPage from './pages/ProfileEditPage';
 import AboutAppPage from './pages/AboutAppPage';
+import RewashPage from './pages/RewashPage';
 import LeavePage from './pages/LeavePage';
 import LeaderPage from './pages/LeaderPage';
 import ManagementAbsensiPage from './pages/ManagementAbsensiPage';
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/linen-report" element={<ProtectedRoute><LinenReportPage /></ProtectedRoute>} />
         <Route path="/daily-report" element={<ProtectedRoute><DailyReportPage /></ProtectedRoute>} />
         <Route path="/kasbon" element={<ProtectedRoute><KasbonPage /></ProtectedRoute>} />
+        <Route path="/rewash" element={<ProtectedRoute><RewashPage /></ProtectedRoute>} />
         <Route path="/about" element={<ProtectedRoute><AboutAppPage /></ProtectedRoute>} />
         <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />
         <Route path="/management-attendance" element={<ProtectedRoute><ManagementAbsensiPage /></ProtectedRoute>} />
