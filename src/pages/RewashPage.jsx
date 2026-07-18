@@ -14,20 +14,12 @@ const fmtDate = (iso) => {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-/* Cutoff: 26 bulan sebelumnya – 25 bulan berikutnya */
-const getCutoffRange = () => {
+/* Range default: 1 minggu terakhir (hari ini - 7 hari) */
+const getLastWeekRange = () => {
   const today = new Date();
-  const day = today.getDate();
-  let start, end;
-  if (day <= 25) {
-    start = new Date(today.getFullYear(), today.getMonth() - 1, 26);
-    end   = new Date(today.getFullYear(), today.getMonth(), 25);
-  } else {
-    start = new Date(today.getFullYear(), today.getMonth(), 26);
-    end   = new Date(today.getFullYear(), today.getMonth() + 1, 25);
-  }
+  const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
   const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  return { start: fmt(start), end: fmt(end) };
+  return { start: fmt(oneWeekAgo), end: fmt(today) };
 };
 
 export default function RewashPage() {
@@ -62,6 +54,7 @@ export default function RewashPage() {
   /* ── Edit mode ── */
   const [editingId, setEditingId] = useState(null);
   const [editingReport, setEditingReport] = useState(null);
+  const [existingReportWarning, setExistingReportWarning] = useState(null);
 
   /* ── UI state ── */
   const [submitting, setSubmitting] = useState(false);
@@ -72,9 +65,10 @@ export default function RewashPage() {
   /* ── History state ── */
   const [reports, setReports] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const defaultRange = getCutoffRange();
+  const defaultRange = getLastWeekRange();
   const [historyStart, setHistoryStart] = useState(defaultRange.start);
   const [historyEnd, setHistoryEnd] = useState(defaultRange.end);
+  const [historyHospitalId, setHistoryHospitalId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteConfirmGroup, setDeleteConfirmGroup] = useState(null);
   const draftLinensRef = useRef([]);
@@ -156,7 +150,7 @@ export default function RewashPage() {
     if (activeTab === 'history') {
       fetchHistory();
     }
-  }, [activeTab, historyStart, historyEnd]);
+  }, [activeTab, historyStart, historyEnd, historyHospitalId]);
 
   const fetchHistory = async () => {
     setHistoryLoading(true);
@@ -164,13 +158,35 @@ export default function RewashPage() {
       const params = {};
       if (historyStart) params.startDate = historyStart;
       if (historyEnd) params.endDate = historyEnd;
+      if (historyHospitalId) params.hospitalId = historyHospitalId;
 
-      const res = await api.get('/rewash/my-reports', { params });
+      const res = await api.get('/rewash/all-reports', { params });
       setReports(res.data?.data || []);
     } catch (err) {
       console.error('fetchHistory', err);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const handleHospitalChange = async (e) => {
+    const val = e.target.value;
+    setHospitalId(val);
+    setLinens([]);
+    
+    if (val) {
+      try {
+        const res = await api.get(`/rewash/check-hospital-report`, { params: { hospital_id: val } });
+        if (res.data?.data?.exists) {
+          const existingReport = res.data.data.report;
+          if (editingId && Number(editingId) === Number(existingReport.id)) {
+            return;
+          }
+          setExistingReportWarning(existingReport);
+        }
+      } catch (err) {
+        console.error('Error checking existing hospital report', err);
+      }
     }
   };
 
@@ -206,6 +222,7 @@ export default function RewashPage() {
     setSubmitError(null);
     setSuccess(false);
     setSuccessMsg('');
+    setExistingReportWarning(null);
   };
 
   const startEdit = (report) => {
@@ -479,10 +496,7 @@ export default function RewashPage() {
               <Section color="bg-emerald-500" title="Rumah Sakit">
                 <Field label="Pilih Rumah Sakit" required>
                   <select className={selectCls} style={selectStyle}
-                    value={hospitalId} onChange={e => {
-                      setHospitalId(e.target.value);
-                      setLinens([]);
-                    }}>
+                    value={hospitalId} onChange={handleHospitalChange}>
                     <option value="">— Pilih Rumah Sakit —</option>
                     {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </select>
@@ -676,6 +690,23 @@ export default function RewashPage() {
                 </div>
               </div>
 
+              {/* Hospital Filter */}
+              <div className="mb-2.5">
+                <select
+                  className={selectCls}
+                  style={selectStyle}
+                  value={historyHospitalId}
+                  onChange={e => setHistoryHospitalId(e.target.value)}
+                >
+                  <option value="">— Semua Rumah Sakit —</option>
+                  {hospitals.map(h => (
+                    <option key={h.id} value={h.id}>
+                      {h.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label className="text-[10px] font-semibold text-slate-400 mb-0.5 block">Dari</label>
@@ -822,6 +853,45 @@ export default function RewashPage() {
                 <button onClick={() => setDeleteConfirmGroup(null)}
                   className="flex-1 py-2.5 rounded-[12px] border border-slate-200 bg-white text-slate-600 text-[12.5px] font-bold cursor-pointer hover:bg-slate-50 transition">
                   Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Existing Report Warning Modal */}
+        {existingReportWarning && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-[340px] bg-white rounded-[20px] p-5 shadow-[0_10px_40px_rgba(0,0,0,.12)] text-center">
+              <div className="w-12 h-12 rounded-[16px] bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mx-auto mb-3.5">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <h3 className="text-[15px] font-extrabold text-slate-900 tracking-[-0.01em] mb-1">Rumah Sakit Ini Telah Ada Riwayat Laporan</h3>
+              <p className="text-[12px] text-slate-400 leading-relaxed mb-5">
+                Apakah Anda ingin mengecek dan melengkapinya?
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => {
+                  startEdit(existingReportWarning);
+                  setExistingReportWarning(null);
+                }}
+                  className="flex-1 py-2.5 rounded-[12px] bg-blue-500 text-white text-[12.5px] font-bold border-none cursor-pointer hover:bg-blue-600 transition">
+                  Cek
+                </button>
+                <button type="button" onClick={() => {
+                  if (editingId) {
+                    setHospitalId(String(editingReport.hospital_id));
+                  } else {
+                    setHospitalId('');
+                  }
+                  setExistingReportWarning(null);
+                }}
+                  className="flex-1 py-2.5 rounded-[12px] border border-slate-200 bg-white text-slate-600 text-[12.5px] font-bold cursor-pointer hover:bg-slate-50 transition">
+                  Cancel
                 </button>
               </div>
             </div>
