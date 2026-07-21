@@ -55,7 +55,7 @@ const STATUS_META = {
 
 export default function LinenReportPage() {
   const navigate = useNavigate();
-  const fileRef = useRef(null);
+  const galleryRef = useRef(null);
   const statusFileRef = useRef(null);
   const authUser = useAuthStore(s => s.user);
   const myEmployeeId = authUser?.employee_id;
@@ -103,6 +103,7 @@ export default function LinenReportPage() {
   const [submitError, setSubmitError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   /* ── History state ── */
   const [reports, setReports] = useState([]);
@@ -176,16 +177,26 @@ export default function LinenReportPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setAttachmentFile(file);
+    if (attachmentPreview && !existingAttachmentPath) URL.revokeObjectURL(attachmentPreview);
     setAttachmentPreview(URL.createObjectURL(file));
     setRemoveExistingAttachment(false);
+    e.target.value = '';
   };
 
   const removeFile = () => {
     setAttachmentFile(null);
-    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    if (attachmentPreview && !existingAttachmentPath) URL.revokeObjectURL(attachmentPreview);
     setAttachmentPreview(null);
     setRemoveExistingAttachment(true);
-    if (fileRef.current) fileRef.current.value = '';
+    if (galleryRef.current) galleryRef.current.value = '';
+  };
+
+  const handleCameraCapture = (file) => {
+    setAttachmentFile(file);
+    if (attachmentPreview && !existingAttachmentPath) URL.revokeObjectURL(attachmentPreview);
+    setAttachmentPreview(URL.createObjectURL(file));
+    setShowCamera(false);
+    setRemoveExistingAttachment(false);
   };
 
   const resetForm = () => {
@@ -207,7 +218,7 @@ export default function LinenReportPage() {
     setEditingId(null);
     setSubmitError(null);
     setSuccess(false);
-    if (fileRef.current) fileRef.current.value = '';
+    if (galleryRef.current) galleryRef.current.value = '';
   };
 
   const populateForm = (report) => {
@@ -582,7 +593,7 @@ export default function LinenReportPage() {
               {/* Section 6 – Lampiran */}
               <Section color="bg-rose-500" title="Bukti Lampiran">
                 <Field label="Foto Bukti (harap lampirkan foto yang jelas untuk memperlihatkan letak kerusakan)">
-                  <input type="file" ref={fileRef} accept="image/*" className="hidden"
+                  <input type="file" ref={galleryRef} accept="image/*" className="hidden"
                     onChange={handleFileChange} />
                   {attachmentPreview && !removeExistingAttachment ? (
                     <div className="relative rounded-xl overflow-hidden border border-slate-200 mb-2">
@@ -596,15 +607,25 @@ export default function LinenReportPage() {
                       </button>
                     </div>
                   ) : null}
-                  <button type="button" onClick={() => fileRef.current?.click()}
-                    className="w-full py-3 rounded-[12px] border-2 border-dashed border-slate-300 text-slate-500 text-[12.5px] font-semibold flex items-center justify-center gap-2 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition cursor-pointer">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                      <polyline points="17,8 12,3 7,8"/>
-                      <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    {attachmentFile ? 'Ganti Foto' : (existingAttachmentPath && !removeExistingAttachment) ? 'Ganti Foto' : 'Upload Foto Bukti'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setShowCamera(true)}
+                      className="flex-1 py-3 rounded-[12px] border-2 border-dashed border-slate-300 text-slate-500 text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition cursor-pointer">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      {attachmentPreview && !removeExistingAttachment ? 'Ambil Ulang' : 'Ambil Foto'}
+                    </button>
+                    <button type="button" onClick={() => galleryRef.current?.click()}
+                      className="flex-1 py-3 rounded-[12px] border-2 border-dashed border-slate-300 text-slate-500 text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:border-violet-400 hover:text-violet-500 hover:bg-violet-50/50 transition cursor-pointer">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                      {attachmentPreview && !removeExistingAttachment ? 'Ganti dari Galeri' : 'Dari Galeri'}
+                    </button>
+                  </div>
                 </Field>
               </Section>
 
@@ -809,6 +830,11 @@ export default function LinenReportPage() {
               })()
             )}
           </main>
+        )}
+
+        {/* Camera modal */}
+        {showCamera && (
+          <CameraModal onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />
         )}
 
         {/* Duplicate submission warning */}
@@ -1176,6 +1202,167 @@ function Field({ label, required, hint, children }) {
       </label>
       {children}
       {hint && <span className="text-[11px] text-slate-400">{hint}</span>}
+    </div>
+  );
+}
+
+/* ── Live timestamp overlay ── */
+function LiveTimestamp() {
+  const [ts, setTs] = useState('');
+  useEffect(() => {
+    const fmt = () => {
+      const n = new Date();
+      const pad = (v) => String(v).padStart(2, '0');
+      setTs(`${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`);
+    };
+    fmt();
+    const id = setInterval(fmt, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="absolute bottom-20 right-3 px-2.5 py-1 rounded-[6px] bg-black/55 text-white text-[12px] font-mono font-bold pointer-events-none select-none">
+      {ts}
+    </div>
+  );
+}
+
+/* ── In-browser camera modal ── */
+function CameraModal({ onCapture, onClose }) {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const [camError, setCamError] = useState(null);
+  const [facingMode, setFacingMode] = useState('environment');
+
+  useEffect(() => {
+    let cancelled = false;
+    streamRef.current?.getTracks().forEach(t => t.stop());
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: { ideal: facingMode } }, audio: false })
+      .then(stream => {
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().then(() => {
+            if (!cancelled) { setReady(true); setCamError(null); }
+          });
+        }
+      })
+      .catch(err => {
+        if (!cancelled) { setReady(false); setCamError('Tidak dapat mengakses kamera: ' + err.message); }
+      });
+
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach(t => t.stop());
+    };
+  }, [facingMode]);
+
+  const flipCamera = () => {
+    setReady(false);
+    setCamError(null);
+    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+  };
+
+  const capture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0);
+    if (facingMode === 'user') {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    const n = new Date();
+    const pad = (v) => String(v).padStart(2, '0');
+    const label = `${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+    const fontSize = Math.max(14, Math.floor(canvas.width / 28));
+    ctx.font = `bold ${fontSize}px monospace`;
+    const tw = ctx.measureText(label).width;
+    const pad8 = 10;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(canvas.width - tw - pad8 * 2 - 6, canvas.height - fontSize - pad8 * 2 - 6, tw + pad8 * 2, fontSize + pad8);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, canvas.width - tw - pad8 - 6, canvas.height - pad8 - 6);
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const file = new File([blob], `linen_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      onCapture(file);
+    }, 'image/jpeg', 0.9);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/75 flex items-center justify-center p-4">
+      <div className="w-full max-w-[360px] bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
+          <span className="text-white text-[14px] font-bold">Ambil Foto Bukti</span>
+          <button onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 text-white/70 grid place-items-center hover:bg-white/20 hover:text-white transition cursor-pointer">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="2" y1="2" x2="10" y2="10" /><line x1="10" y1="2" x2="2" y2="10" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="relative w-full" style={{ aspectRatio: '4/3', background: '#111' }}>
+          {camError ? (
+            <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
+              <div>
+                <div className="text-red-400 text-[13px] font-semibold mb-1">Kamera Tidak Tersedia</div>
+                <div className="text-white/50 text-[11px] leading-relaxed">{camError}</div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={facingMode === 'user' ? { transform: 'scaleX(-1)' } : undefined}
+                playsInline
+                muted
+              />
+              {ready && <LiveTimestamp />}
+              <canvas ref={canvasRef} className="hidden" />
+            </>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 flex justify-between items-center px-8 py-5">
+          <button onClick={onClose}
+            className="w-11 h-11 rounded-full bg-white/10 text-white/60 grid place-items-center hover:bg-white/20 transition cursor-pointer">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="12,4 6,10 12,16" />
+            </svg>
+          </button>
+
+          <button onClick={capture} disabled={!ready || !!camError}
+            className="w-[68px] h-[68px] rounded-full border-4 border-white grid place-items-center shadow-lg transition hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer">
+            <div className="w-[52px] h-[52px] rounded-full bg-white" />
+          </button>
+
+          <button onClick={flipCamera} disabled={!!camError}
+            className="w-11 h-11 rounded-full bg-white/10 text-white/70 grid place-items-center hover:bg-white/20 hover:text-white transition cursor-pointer disabled:opacity-30">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 4v6h6" />
+              <path d="M23 20v-6h-6" />
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
