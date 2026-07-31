@@ -15,6 +15,7 @@ import ManagementAbsensiPage from './pages/ManagementAbsensiPage';
 import LinenReportPage from './pages/LinenReportPage';
 import DailyReportPage from './pages/DailyReportPage';
 import KasbonPage from './pages/KasbonPage';
+import PayslipPage from './pages/PayslipPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAuthStore from './store/authStore';
 
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/linen-report" element={<ProtectedRoute><LinenReportPage /></ProtectedRoute>} />
         <Route path="/daily-report" element={<ProtectedRoute><DailyReportPage /></ProtectedRoute>} />
         <Route path="/kasbon" element={<ProtectedRoute><KasbonPage /></ProtectedRoute>} />
+        <Route path="/payslip" element={<ProtectedRoute><PayslipPage /></ProtectedRoute>} />
         <Route path="/rewash" element={<ProtectedRoute><RewashPage /></ProtectedRoute>} />
         <Route path="/about" element={<ProtectedRoute><AboutAppPage /></ProtectedRoute>} />
         <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />

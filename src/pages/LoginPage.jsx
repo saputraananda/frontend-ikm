@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
-import ikmLogo from '/ikm.png';
+import ikmLogo from '../assets/images/ikm_white.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();

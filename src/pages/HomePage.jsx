@@ -1,7 +1,8 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../lib/api';
 import useAuthStore from '../store/authStore';
+import ikmWhiteLogo from '../assets/images/ikm_white.png';
 
 const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -85,6 +86,11 @@ const MENU_ITEMS = [
         key: 'rewash', label: 'Rewash', to: '/rewash',
         icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23,4 23,10 17,10" /><polyline points="1,20 1,14 7,14" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>,
         bg: 'linear-gradient(135deg, #EDE9FE 0%, #F5F3FF 100%)'
+    },
+    {
+        key: 'payslip', label: 'Slip Gaji', to: '/payslip',
+        icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DB2777" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14,2 14,8 20,8" /><path d="M16 13H8M16 17H8M10 9H8" /></svg>,
+        bg: 'linear-gradient(135deg, #FCE7F3 0%, #FDF2F8 100%)'
     },
 ];
 
@@ -190,7 +196,7 @@ export default function HomePage() {
 
                         {/* Logo IKM */}
                         <img
-                            src="/ikm.png"
+                            src={ikmWhiteLogo}
                             alt="Logo IKM"
                             className="w-[82px] h-[82px] object-contain opacity-80 flex-shrink-0"
                             draggable={false}
