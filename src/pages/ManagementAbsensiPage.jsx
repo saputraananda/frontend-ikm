@@ -267,6 +267,60 @@ export default function ManagementAbsensiPage() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setMsg({ text: r.data.message, type: 'success' });
+
+            try {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const text = punchType === 'in' 
+                        ? `Selamat Datang ${displayName}, semoga sehat selalu` 
+                        : `Terima kasih ${displayName}, sampai jumpa esok`;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'id-ID';
+
+                    const voices = window.speechSynthesis.getVoices();
+                    const findIndonesianVoice = (list) => {
+                        return list.find(v => {
+                            const lang = v.lang.toLowerCase().replace('_', '-');
+                            const name = v.name.toLowerCase();
+                            return lang.includes('id-id') || 
+                                   lang.includes('in-id') || 
+                                   lang === 'id' || 
+                                   lang === 'in' || 
+                                   name.includes('indonesia');
+                        });
+                    };
+
+                    const idVoice = findIndonesianVoice(voices);
+                    if (idVoice) {
+                        utterance.voice = idVoice;
+                        window.speechSynthesis.speak(utterance);
+                    } else {
+                        let spoken = false;
+                        const onVoicesChanged = () => {
+                            if (spoken) return;
+                            const updatedVoices = window.speechSynthesis.getVoices();
+                            const updatedIdVoice = findIndonesianVoice(updatedVoices);
+                            if (updatedIdVoice) {
+                                utterance.voice = updatedIdVoice;
+                            }
+                            window.speechSynthesis.speak(utterance);
+                            spoken = true;
+                            window.speechSynthesis.onvoiceschanged = null;
+                        };
+                        window.speechSynthesis.onvoiceschanged = onVoicesChanged;
+                        setTimeout(() => {
+                            if (!spoken) {
+                                window.speechSynthesis.speak(utterance);
+                                spoken = true;
+                                window.speechSynthesis.onvoiceschanged = null;
+                            }
+                        }, 250);
+                    }
+                }
+            } catch (speechErr) {
+                console.error('Gagal memutar Text-to-Speech:', speechErr);
+            }
+
             fetchToday();
         } catch (e) {
             const errMsg = e.response?.data?.message || e.message || 'Gagal menyimpan absensi';
@@ -279,7 +333,7 @@ export default function ManagementAbsensiPage() {
         setCameraOpen(false);
         setPendingPunch(null);
         setLoadingPunch(null);
-    }, [pendingPunch, captureSelfieWithTimestamp, fetchToday, stopCamera, videoReady]);
+    }, [pendingPunch, captureSelfieWithTimestamp, fetchToday, stopCamera, videoReady, displayName]);
 
     const cancelCamera = useCallback(() => {
         if (pendingPunch) {
