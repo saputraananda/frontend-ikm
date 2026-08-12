@@ -246,6 +246,17 @@ export default function ManagementAbsensiPage() {
 
     const confirmSelfieAndSubmit = useCallback(async () => {
         if (!pendingPunch) return;
+
+        // Priming/unlocking SpeechSynthesis for iOS/Safari before async network call
+        try {
+            if ('speechSynthesis' in window) {
+                const prime = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(prime);
+            }
+        } catch (e) {
+            // ignore
+        }
+
         const { punchType } = pendingPunch;
         const setMsg = punchType === 'in' ? setMsgIn : setMsgOut;
 
