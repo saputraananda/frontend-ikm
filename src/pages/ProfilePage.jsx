@@ -53,6 +53,7 @@ export default function ProfilePage() {
     { label: 'Jenis Kelamin',    value: p.gender },
     { label: 'Tempat Lahir',     value: p.birth_place },
     { label: 'Tanggal Lahir',    value: fmtDateLong(p.birth_date) },
+    { label: 'Golongan Darah',   value: p.blood_type || '–' },
     { label: 'Alamat',           value: p.address },
     { label: 'Tanggal Bergabung',value: fmtDateLong(p.join_date) },
     { label: 'Jurusan',          value: p.major_name },

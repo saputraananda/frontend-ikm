@@ -79,6 +79,10 @@ const getFileType = url => {
 
 /* ── Select options ── */
 const GENDER_OPTS = [{ v: '', l: '— Pilih —' }, { v: 'L', l: 'Laki-laki' }, { v: 'P', l: 'Perempuan' }];
+const BLOOD_OPTS = [
+    { v: '', l: '— Pilih —' },
+    ...['A', 'B', 'AB', 'O', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(v => ({ v, l: v })),
+];
 const MARITAL_OPTS = [
     { v: '', l: '— Pilih —' }, { v: 'Single', l: 'Belum Menikah' },
     { v: 'Married', l: 'Menikah' }, { v: 'Divorced', l: 'Cerai' }, { v: 'Widowed', l: 'Janda/Duda' },
@@ -350,6 +354,7 @@ export default function ProfileEditPage() {
                 gender: d.gender || '',
                 birth_place: d.birth_place || '',
                 birth_date: d.birth_date ? d.birth_date.slice(0, 10) : '',
+                blood_type: d.blood_type ? String(d.blood_type).toUpperCase() : '',
                 address: d.address || '',
                 ktp_number: d.ktp_number || '',
                 phone_number: d.phone_number || '',
@@ -503,6 +508,7 @@ export default function ProfileEditPage() {
                         <FieldRow label="Jenis Kelamin" name="gender" value={form.gender} onChange={handleChange} options={GENDER_OPTS} />
                         <FieldRow label="Tempat Lahir" name="birth_place" value={form.birth_place} onChange={handleChange} placeholder="cth. Jakarta" />
                         <FieldRow label="Tanggal Lahir" name="birth_date" value={form.birth_date} onChange={handleChange} type="date" />
+                        <FieldRow label="Golongan Darah" name="blood_type" value={form.blood_type} onChange={handleChange} options={BLOOD_OPTS} />
                         <FieldRow label="No. HP" name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="cth. 087770597000" error={phoneErrors.phone_number} />
                         <FieldRow label="Email Pribadi" name="private_email" value={form.private_email} onChange={handleChange} placeholder="cth. nama@email.com" type="email" />
                         <FieldRow label="No. KTP" name="ktp_number" value={form.ktp_number} onChange={handleChange} placeholder="16 digit NIK" />
