@@ -334,6 +334,8 @@ export default function ProfileEditPage() {
     const [educationLevels, setEducationLevels] = useState([]);
     const [phoneErrors, setPhoneErrors] = useState({});
     const [preview, setPreview] = useState(null); // { url, label }
+    const [pinForm, setPinForm] = useState({ pin: '', confirm: '' });
+    const [pinError, setPinError] = useState(null);
     const profileFileRef = useRef(null);
 
     useEffect(() => { document.title = 'Edit Profil | IKM Mobile'; }, []);
@@ -389,6 +391,11 @@ export default function ProfileEditPage() {
         setTimeout(() => setToast(null), 3000);
     };
 
+    const handlePinChange = (name, value) => {
+        setPinForm(prev => ({ ...prev, [name]: String(value).replace(/\D/g, '').slice(0, 4) }));
+        setPinError(null);
+    };
+
     const handleSave = async () => {
         const phoneFields = ['phone_number', 'emergency_contact'];
         for (const f of phoneFields) {
@@ -397,12 +404,28 @@ export default function ProfileEditPage() {
                 return;
             }
         }
+        // PIN: kosong = tidak diubah
+        const { pin, confirm } = pinForm;
+        if (pin || confirm) {
+            const err = pin.length !== 4 ? 'PIN harus 4 digit.' : pin !== confirm ? 'Konfirmasi PIN tidak cocok.' : null;
+            if (err) {
+                setPinError(err);
+                showToast(err, false);
+                return;
+            }
+        }
         setSaving(true);
         try {
-            await api.put('/employee/update-profile', form);
+            await api.put('/employee/update-profile', pin ? { ...form, pin } : form);
+            if (pin) {
+                setDetail(prev => ({ ...prev, pin, has_pin: true }));
+                setPinForm({ pin: '', confirm: '' });
+            }
             showToast('Profil berhasil disimpan.');
         } catch (e) {
-            showToast(e.response?.data?.message || 'Gagal menyimpan.', false);
+            const msg = e.response?.data?.message || 'Gagal menyimpan.';
+            if (/pin/i.test(msg)) setPinError(msg);
+            showToast(msg, false);
         }
         setSaving(false);
     };
@@ -532,6 +555,15 @@ export default function ProfileEditPage() {
                     <Section title="Rekening Bank">
                         <FieldRow label="Nama Bank" name="bank_id" value={form.bank_id} onChange={handleChange} options={bankOpts} />
                         <FieldRow label="No. Rekening" name="bank_account_number" value={form.bank_account_number} onChange={handleChange} placeholder="Nomor rekening" />
+                    </Section>
+
+                    {/* PIN Karyawan (mst_employee_pin) */}
+                    <Section title="PIN Karyawan">
+                        <div className="px-4 pt-1 pb-1 text-[11px] text-slate-500 font-medium">
+                            4 digit angka, unik. {detail?.has_pin ? 'PIN sudah ada — isi untuk mengganti.' : 'Belum ada PIN.'}
+                        </div>
+                        <FieldRow label="PIN Baru" name="pin" type="password" value={pinForm.pin} onChange={handlePinChange} placeholder="4 digit" />
+                        <FieldRow label="Konfirmasi PIN" name="confirm" type="password" value={pinForm.confirm} onChange={handlePinChange} placeholder="Ulangi PIN" error={pinError} />
                     </Section>
 
                     {/* Dokumen */}
